@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>האימונים שלי</title>
+<meta name="theme-color" content="#0f0d0e"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="אימונים"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon.png"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#fff;min-height:100vh;max-width:430px;margin:0 auto;}
+:root{--pk:#c9849a;--pk-dim:rgba(201,132,154,0.15);--pk-border:rgba(201,132,154,0.38);--pk-light:#e8b4c4;--pk-dark:#9a5a70;}
+.screen{display:none;flex-direction:column;min-height:100vh;}
+.screen.active{display:flex;}
+
+.hero{background:#160f11;padding:56px 20px 20px;text-align:right;position:relative;}
+.hero-hi{font-size:13px;color:rgba(255,255,255,0.4);}
+.hero-name{font-size:28px;font-weight:600;color:#fff;margin-top:2px;}
+.avatar-btn{position:absolute;top:56px;left:20px;width:40px;height:40px;border-radius:50%;background:rgba(201,132,154,0.1);border:0.5px solid rgba(201,132,154,0.25);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+
+.glass{background:rgba(201,132,154,0.05);border:0.5px solid rgba(201,132,154,0.12);border-radius:18px;padding:16px;margin:0 14px 12px;}
+.card-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.card-ttl{font-size:14px;font-weight:500;color:rgba(255,255,255,0.8);}
+.pills-row{display:flex;gap:8px;}
+.pill{flex:1;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:14px;padding:10px 4px;text-align:center;cursor:pointer;transition:background .15s;}
+.pill:hover,.pill:active{background:rgba(201,132,154,0.12);}
+.pill.done{background:rgba(201,132,154,0.12);border-color:var(--pk-border);}
+.pill-check{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.15);margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--pk);}
+.pill-check.ck{background:var(--pk);border-color:var(--pk);color:#fff;}
+.pill-num{font-size:22px;font-weight:600;}
+.pill-lbl{font-size:10px;color:rgba(255,255,255,0.3);margin-top:2px;}
+
+.stats-row{display:flex;gap:10px;margin:0 14px 12px;}
+.scard{flex:1;background:rgba(201,132,154,0.05);border:0.5px solid rgba(201,132,154,0.1);border-radius:16px;padding:14px 12px;}
+.scard-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.scard-ttl{font-size:12px;color:rgba(255,255,255,0.35);}
+.scard-val{font-size:22px;font-weight:600;color:#fff;}
+.scard-sub{font-size:11px;color:rgba(255,255,255,0.28);margin-top:3px;}
+.ring-wrap{position:relative;width:48px;height:48px;margin:0 auto 6px;}
+.ring-wrap svg{transform:rotate(-90deg);}
+.ring-txt{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:11px;font-weight:500;color:#fff;}
+
+.bnav{display:flex;border-top:0.5px solid rgba(201,132,154,0.1);background:#0f0d0e;padding:10px 0 28px;margin-top:auto;}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;font-size:11px;color:rgba(255,255,255,0.28);font-family:inherit;padding:6px 0;}
+.nb.on{color:var(--pk);}
+.ni{font-size:22px;}
+
+/* EXERCISE */
+.ex-topbar{padding:56px 20px 0;background:#0f0d0e;}
+.ex-nav-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.ex-counter{font-size:16px;font-weight:500;color:var(--pk);}
+.ex-nav-btn{background:none;border:none;color:var(--pk);font-size:24px;cursor:pointer;padding:0 4px;}
+.ex-menu-btn{background:none;border:none;color:rgba(255,255,255,0.35);font-size:22px;cursor:pointer;}
+.ex-name{font-size:19px;font-weight:600;color:#fff;line-height:1.4;margin-bottom:6px;text-align:right;}
+.po-hint{display:none;background:rgba(201,132,154,0.1);border:0.5px solid rgba(201,132,154,0.28);border-radius:10px;padding:9px 14px;margin-bottom:12px;font-size:13px;color:var(--pk-light);text-align:right;}
+.po-hint.show{display:block;}
+
+.sets-area{padding:0 20px;flex:1;overflow-y:auto;}
+.set-item{display:flex;align-items:center;padding:14px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);cursor:pointer;}
+.set-item.active-set{background:rgba(201,132,154,0.05);border:0.5px solid var(--pk-border);border-radius:14px;padding:14px 12px;margin-bottom:8px;}
+.set-bubble{width:34px;height:34px;border-radius:50%;background:rgba(201,132,154,0.12);border:1.5px solid var(--pk);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:var(--pk);flex-shrink:0;}
+.set-bubble.done-b{background:var(--pk);color:#fff;border-color:var(--pk);}
+.set-vals{display:flex;flex:1;margin-right:14px;align-items:center;}
+.set-divider{width:0.5px;background:rgba(255,255,255,0.12);height:28px;margin:0 16px;}
+.set-field{flex:1;text-align:center;}
+.set-num{font-size:22px;font-weight:600;color:#fff;}
+.set-unit{font-size:12px;color:rgba(255,255,255,0.35);margin-top:1px;}
+.set-type-badge{font-size:10px;color:rgba(255,255,255,0.25);background:rgba(255,255,255,0.06);border-radius:6px;padding:2px 8px;margin-top:6px;display:inline-block;}
+.active-inputs{display:flex;gap:8px;margin-top:12px;}
+.ainp-wrap{flex:1;text-align:center;}
+.ainp-lbl{font-size:11px;color:rgba(255,255,255,0.3);margin-bottom:4px;}
+.ainp{width:100%;background:rgba(255,255,255,0.05);border:0.5px solid rgba(201,132,154,0.2);border-radius:10px;padding:10px 4px;font-size:18px;text-align:center;color:#fff;outline:none;font-family:inherit;}
+.ainp:focus{border-color:var(--pk-border);background:var(--pk-dim);}
+.prev-val{font-size:11px;color:rgba(255,255,255,0.25);margin-top:3px;}
+.next-ex-preview{margin:10px 20px 0;padding:12px;background:rgba(255,255,255,0.03);border-radius:14px;}
+.nep-lbl{font-size:11px;color:rgba(255,255,255,0.3);margin-bottom:4px;}
+.nep-name{font-size:13px;color:rgba(255,255,255,0.55);}
+.finish-set-btn{margin:12px 20px 20px;padding:17px;background:var(--pk);border:none;border-radius:20px;font-size:17px;font-weight:600;color:#fff;cursor:pointer;font-family:inherit;width:calc(100% - 40px);}
+.finish-set-btn:active{background:var(--pk-dark);}
+
+/* REST TIMER */
+.rest-overlay{display:none;position:fixed;inset:0;background:rgba(15,13,14,0.97);z-index:200;flex-direction:column;align-items:center;justify-content:center;}
+.rest-overlay.show{display:flex;}
+.rest-title{font-size:14px;color:rgba(255,255,255,0.35);margin-bottom:4px;}
+.rest-time{font-size:76px;font-weight:300;color:#fff;letter-spacing:4px;font-variant-numeric:tabular-nums;margin-top:16px;}
+.rest-time.alert{color:#f4a0b5;}
+.rest-skip{padding:14px 52px;background:rgba(201,132,154,0.1);border:0.5px solid rgba(201,132,154,0.25);border-radius:50px;font-size:16px;color:rgba(255,255,255,0.55);cursor:pointer;font-family:inherit;margin-top:28px;}
+.rest-next-lbl{font-size:13px;color:rgba(255,255,255,0.28);margin-top:16px;text-align:center;}
+
+/* FINISH */
+.fin-screen{padding:56px 20px 32px;flex:1;overflow-y:auto;}
+.fin-title{font-size:30px;font-weight:600;color:var(--pk-light);text-align:center;margin-bottom:4px;}
+.fin-sub{font-size:14px;color:rgba(255,255,255,0.4);text-align:center;margin-bottom:24px;}
+.fin-stats{display:flex;justify-content:space-around;margin-bottom:24px;border-bottom:0.5px solid rgba(201,132,154,0.1);padding-bottom:24px;}
+.fin-stat{text-align:center;}
+.fin-stat-val{font-size:26px;font-weight:600;color:#fff;}
+.fin-stat-lbl{font-size:12px;color:rgba(255,255,255,0.3);margin-top:4px;}
+.fin-stat-ico{font-size:24px;margin-bottom:6px;opacity:0.55;}
+.fin-divider{width:0.5px;background:rgba(201,132,154,0.15);align-self:stretch;}
+.fin-section-ttl{font-size:15px;font-weight:500;color:#fff;margin-bottom:12px;text-align:center;}
+.fin-ex-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,0.05);}
+.fin-ex-name{font-size:13px;color:rgba(255,255,255,0.6);}
+.fin-ex-badges{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+.fin-badge{font-size:11px;padding:3px 10px;border-radius:6px;font-weight:500;}
+.badge-reps{background:rgba(201,132,154,0.15);color:var(--pk-light);}
+.badge-vol{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.45);}
+.badge-po{background:rgba(168,216,160,0.15);color:#a8d8a0;}
+.share-btn{width:100%;padding:17px;background:var(--pk);border:none;border-radius:20px;font-size:17px;font-weight:600;color:#fff;cursor:pointer;font-family:inherit;margin-top:20px;}
+.share-btn:active{background:var(--pk-dark);}
+
+/* MANAGE */
+.manage-top{padding:56px 20px 16px;}
+.manage-ttl{font-size:24px;font-weight:600;}
+.sec-lbl{font-size:11px;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.8px;margin:14px 0 8px;}
+.mrow{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:0.5px solid rgba(201,132,154,0.08);}
+.mrow-name{font-size:14px;color:#fff;}
+.mrow-weight{font-size:12px;color:rgba(201,132,154,0.7);margin-top:2px;}
+.del-btn{font-size:12px;color:rgba(255,255,255,0.22);background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:8px;}
+.del-btn:active{background:rgba(226,75,74,0.12);color:#e24b4a;}
+.add-form{margin-top:16px;background:rgba(201,132,154,0.04);border:0.5px solid rgba(201,132,154,0.1);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;}
+.add-form input,.add-form select{width:100%;background:rgba(255,255,255,0.05);border:0.5px solid rgba(201,132,154,0.15);border-radius:10px;padding:12px;font-size:15px;color:#fff;outline:none;font-family:inherit;direction:rtl;}
+.add-form select option{background:#1a1214;}
+.add-form input::placeholder{color:rgba(255,255,255,0.18);}
+.add-sbmt{padding:12px;background:rgba(201,132,154,0.15);border:0.5px solid var(--pk-border);border-radius:10px;font-size:15px;color:var(--pk-light);cursor:pointer;font-family:inherit;font-weight:500;}
+
+/* HISTORY */
+.hist-top{padding:56px 20px 16px;}
+.hist-ttl{font-size:24px;font-weight:600;}
+.tab-row{display:flex;background:rgba(201,132,154,0.07);border-radius:12px;margin:0 14px 14px;padding:3px;}
+.tab-btn{flex:1;padding:9px;border:none;border-radius:10px;font-size:13px;color:rgba(255,255,255,0.38);background:none;cursor:pointer;font-family:inherit;transition:background .15s,color .15s;}
+.tab-btn.on{background:#0f0d0e;color:#fff;}
+.hist-list-wrap{padding:0 14px;flex:1;overflow-y:auto;}
+.hitem{background:rgba(201,132,154,0.05);border:0.5px solid rgba(201,132,154,0.1);border-radius:16px;padding:14px;margin-bottom:10px;}
+.hitem-top{display:flex;justify-content:space-between;align-items:center;}
+.hitem-name{font-size:15px;font-weight:500;color:#fff;}
+.hitem-date{font-size:12px;color:rgba(255,255,255,0.28);}
+.hitem-stats{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;}
+.hitem-stat{font-size:12px;color:rgba(255,255,255,0.38);}
+.hitem-stat span{color:var(--pk-light);font-weight:500;}
+.hist-empty{text-align:center;color:rgba(255,255,255,0.18);font-size:14px;padding:56px 0;}
+.chart-wrap{margin:0 14px 14px;background:rgba(201,132,154,0.04);border:0.5px solid rgba(201,132,154,0.1);border-radius:18px;padding:16px;}
+.chart-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;}
+.chart-ttl{font-size:15px;font-weight:500;color:#fff;}
+.chart-pct{font-size:13px;font-weight:500;color:#a8d8a0;}
+.chart-pct-sub{font-size:11px;color:rgba(255,255,255,0.3);}
+.chart-tabs{display:flex;gap:6px;margin:10px 0 12px;flex-wrap:wrap;}
+.ctab{font-size:11px;padding:5px 11px;border-radius:8px;border:0.5px solid rgba(201,132,154,0.15);background:none;color:rgba(255,255,255,0.35);cursor:pointer;font-family:inherit;}
+.ctab.on{background:var(--pk-dim);border-color:var(--pk-border);color:var(--pk-light);}
+.chart-area{position:relative;height:150px;}
+.scroll-area{overflow-y:auto;}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:300;align-items:center;justify-content:center;}
+.modal-bg.show{display:flex;}
+.modal-box{background:#1a1214;border:0.5px solid rgba(201,132,154,0.2);border-radius:20px;padding:24px;margin:0 20px;width:calc(100% - 40px);}
+.modal-ttl{font-size:16px;font-weight:500;color:#fff;margin-bottom:16px;text-align:right;}
+.modal-input{width:100%;background:rgba(255,255,255,0.05);border:0.5px solid rgba(201,132,154,0.2);border-radius:12px;padding:14px;font-size:18px;color:#fff;outline:none;text-align:center;font-family:inherit;margin-bottom:12px;}
+.modal-btns{display:flex;gap:8px;}
+.modal-cancel{flex:1;padding:13px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.1);border-radius:12px;color:rgba(255,255,255,0.45);font-size:15px;cursor:pointer;font-family:inherit;}
+.modal-ok{flex:1;padding:13px;background:var(--pk);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;}
+
+/* TOAST */
+.toast{position:fixed;top:100px;left:50%;transform:translateX(-50%);background:#1a1214;border:0.5px solid rgba(168,216,160,0.4);border-radius:14px;padding:12px 20px;font-size:13px;color:#a8d8a0;z-index:500;text-align:center;direction:rtl;pointer-events:none;opacity:0;transition:opacity .3s;}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<!-- REST TIMER -->
+<div class="rest-overlay" id="restOverlay">
+  <div class="rest-title">זמן מנוחה</div>
+  <svg width="190" height="190" viewBox="0 0 190 190" style="margin-top:8px;">
+    <circle cx="95" cy="95" r="82" fill="none" stroke="rgba(201,132,154,0.1)" stroke-width="7"/>
+    <circle id="restRingC" cx="95" cy="95" r="82" fill="none" stroke="#c9849a" stroke-width="7"
+      stroke-dasharray="515" stroke-dashoffset="0" stroke-linecap="round"
+      style="transform:rotate(-90deg);transform-origin:center;transition:stroke-dashoffset .9s linear,stroke .3s;"/>
+  </svg>
+  <div class="rest-time" id="restDisp">2:00</div>
+  <div class="rest-next-lbl" id="restNextLbl"></div>
+  <button class="rest-skip" onclick="skipRest()">דלג על מנוחה</button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="poToast"></div>
+
+<!-- HOME -->
+<div class="screen active" id="screen-home">
+  <div class="hero">
+    <div class="avatar-btn">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(201,132,154,0.7)" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    </div>
+    <div class="hero-hi">היי</div>
+    <div class="hero-name" id="heroName">ג׳וואל</div>
+  </div>
+  <div class="glass" style="margin-top:8px;">
+    <div class="card-hdr"><span style="font-size:16px;opacity:.45">🏋️</span><span class="card-ttl">אימונים השבוע</span></div>
+    <div class="pills-row" id="homePills"></div>
+  </div>
+  <div class="stats-row">
+    <div class="scard" style="cursor:pointer" onclick="openWeightModal()">
+      <div class="scard-hdr"><span class="scard-ttl">מעקב שקילות</span><span style="font-size:16px;opacity:.45">⚖️</span></div>
+      <div class="scard-val" id="weightDisplay">—</div>
+      <div class="scard-sub">לחץ לעדכון</div>
+    </div>
+    <div class="scard">
+      <div class="scard-hdr"><span class="scard-ttl">התקדמות שבועית</span><span style="font-size:16px;opacity:.45">📊</span></div>
+      <div class="ring-wrap">
+        <svg width="48" height="48" viewBox="0 0 48 48">
+          <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(201,132,154,0.1)" stroke-width="4"/>
+          <circle id="homeRing" cx="24" cy="24" r="20" fill="none" stroke="#c9849a" stroke-width="4"
+            stroke-dasharray="126" stroke-dashoffset="126" stroke-linecap="round"
+            style="transform:rotate(-90deg);transform-origin:center;transition:stroke-dashoffset .5s;"/>
+        </svg>
+        <div class="ring-txt" id="homeRingPct">0%</div>
+      </div>
+      <div class="scard-sub" id="homeWeekSub">0 מתוך 4</div>
+    </div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="showScreen('history')"><span class="ni">📋</span>היסטוריה</button>
+    <button class="nb" onclick="showScreen('manage')"><span class="ni">⚙️</span>תרגילים</button>
+    <button class="nb on"><span class="ni">🏠</span>בית</button>
+  </div>
+</div>
+
+<!-- EXERCISE -->
+<div class="screen" id="screen-exercise">
+  <div class="ex-topbar">
+    <div class="ex-nav-row">
+      <button class="ex-menu-btn" onclick="showScreen('home')">✕</button>
+      <div class="ex-counter" id="exCounter">תרגיל 1/3</div>
+      <button class="ex-nav-btn" onclick="goNextExercise()">›</button>
+    </div>
+    <div class="ex-name" id="exName"></div>
+    <div class="po-hint" id="poHint"></div>
+  </div>
+  <div class="sets-area" id="setsArea"></div>
+  <div class="next-ex-preview" id="nextExPreview">
+    <div class="nep-lbl">התרגיל הבא</div>
+    <div class="nep-name" id="nextExName"></div>
+  </div>
+  <button class="finish-set-btn" id="finishSetBtn" onclick="finishCurrentSet()">סיים סט</button>
+</div>
+
+<!-- FINISH -->
+<div class="screen" id="screen-finish">
+  <div class="fin-screen">
+    <div class="fin-title">אימון מעולה!</div>
+    <div class="fin-sub">סיימת את האימון שלך בהצלחה.</div>
+    <div class="fin-stats">
+      <div class="fin-stat"><div class="fin-stat-ico">⏱️</div><div class="fin-stat-val" id="finTime">—</div><div class="fin-stat-lbl">זמן אימון</div></div>
+      <div class="fin-divider"></div>
+      <div class="fin-stat"><div class="fin-stat-ico">🏋️</div><div class="fin-stat-val" id="finSets">—</div><div class="fin-stat-lbl">סטים</div></div>
+      <div class="fin-divider"></div>
+      <div class="fin-stat"><div class="fin-stat-ico">⚖️</div><div class="fin-stat-val" id="finVol">—</div><div class="fin-stat-lbl">נפח אימון</div></div>
+    </div>
+    <div class="fin-section-ttl">סיכום תרגילים</div>
+    <div id="finExList"></div>
+    <button class="share-btn" onclick="showScreen('history')">צפי בהתקדמות ↗</button>
+    <button class="share-btn" style="background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.5);margin-top:10px;" onclick="showScreen('home')">סגור</button>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div class="screen" id="screen-history">
+  <div class="hist-top"><div class="hist-ttl">התקדמות</div></div>
+  <div class="tab-row">
+    <button class="tab-btn on" id="tab-chart" onclick="switchHistTab('chart')">גרף</button>
+    <button class="tab-btn" id="tab-log" onclick="switchHistTab('log')">יומן</button>
+  </div>
+  <div id="histChartTab" style="flex:1;overflow-y:auto;">
+    <div class="chart-wrap">
+      <div class="chart-top">
+        <div><div class="chart-ttl">מגמת נפח</div><div class="chart-pct-sub">לאורך שבועות</div></div>
+        <div style="text-align:left;"><div class="chart-pct" id="chartPct">—</div><div class="chart-pct-sub">מתחילת התוכנית</div></div>
+      </div>
+      <div class="chart-tabs">
+        <button class="ctab on" onclick="setChartFilter('all',this)">הכל</button>
+        <button class="ctab" onclick="setChartFilter('upper1',this)">עליון A</button>
+        <button class="ctab" onclick="setChartFilter('lower1',this)">תחתון A</button>
+        <button class="ctab" onclick="setChartFilter('upper2',this)">עליון B</button>
+        <button class="ctab" onclick="setChartFilter('lower2',this)">תחתון B</button>
+      </div>
+      <div class="chart-area"><canvas id="mainChart"></canvas></div>
+    </div>
+    <div style="margin:0 14px 14px;">
+      <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.4);margin-bottom:10px;">סיכום שבוע נוכחי</div>
+      <div id="weekSummaryCards" style="display:flex;gap:8px;"></div>
+    </div>
+  </div>
+  <div id="histLogTab" style="display:none;flex:1;">
+    <div class="hist-list-wrap" id="histList"></div>
+  </div>
+  <div class="bnav">
+    <button class="nb on"><span class="ni">📋</span>היסטוריה</button>
+    <button class="nb" onclick="showScreen('manage')"><span class="ni">⚙️</span>תרגילים</button>
+    <button class="nb" onclick="showScreen('home')"><span class="ni">🏠</span>בית</button>
+  </div>
+</div>
+
+<!-- MANAGE -->
+<div class="screen" id="screen-manage">
+  <div class="manage-top"><div class="manage-ttl">ניהול תרגילים</div></div>
+  <div class="scroll-area" style="padding:0 14px 20px;flex:1;">
+    <div id="manageList"></div>
+    <div class="add-form">
+      <input type="text" id="newExName" placeholder="שם התרגיל..."/>
+      <select id="newExWorkout"><option value="">בחר אימון</option></select>
+      <button class="add-sbmt" onclick="addExercise()">+ הוסף תרגיל</button>
+    </div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="showScreen('history')"><span class="ni">📋</span>היסטוריה</button>
+    <button class="nb on"><span class="ni">⚙️</span>תרגילים</button>
+    <button class="nb" onclick="showScreen('home')"><span class="ni">🏠</span>בית</button>
+  </div>
+</div>
+
+<!-- WEIGHT MODAL -->
+<div class="modal-bg" id="wModal">
+  <div class="modal-box">
+    <div class="modal-ttl">עדכון משקל גוף</div>
+    <input type="number" id="wInput" class="modal-input" placeholder="משקל בק״ג..." step="0.1"/>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeWeightModal()">ביטול</button>
+      <button class="modal-ok" onclick="saveWeight()">שמור</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const SK='workout_pwa_v1';
+const DEF={
+  workouts:[
+    {id:'upper1',name:'פלג עליון A',type:'upper'},
+    {id:'lower1',name:'פלג תחתון A',type:'lower'},
+    {id:'upper2',name:'פלג עליון B',type:'upper'},
+    {id:'lower2',name:'פלג תחתון B',type:'lower'},
+  ],
+  exercises:{
+    upper1:['לחיצת חזה','שכיבות שמיכה','כתפיים'],
+    lower1:['סקוואט','לג קרל','קאלף רייז'],
+    upper2:['מכונת חזה','כבל כתפיים','טרייספס'],
+    lower2:['לג פרס','רומניאן דד','חטיפה'],
+  },
+  baseWeights:{},logs:{},weight:null
+};
+function ld(){try{const r=localStorage.getItem(SK);return r?JSON.parse(r):JSON.parse(JSON.stringify(DEF));}catch(e){return JSON.parse(JSON.stringify(DEF));}}
+function sv(d){try{localStorage.setItem(SK,JSON.stringify(d));}catch(e){}}
+let D=ld();
+let curWid=null,curExIdx=0,curSetIdx=0,setData={},workoutStart=null;
+let restTimer=null,restRemain=120,restTotal=120;
+let audioCtx=null,chartInstance=null,curChartFilter='all',curHistTab='chart';
+let poApplied={};
+
+function poStep(wid){return D.workouts.find(w=>w.id===wid)?.type==='upper'?1:2.5;}
+function getBaseWeight(ex){return D.baseWeights[ex]||null;}
+function setBaseWeight(ex,w){D.baseWeights[ex]=parseFloat(w);sv(D);}
+function shouldPO(sets){if(!sets||sets.length<3)return false;return sets.every(s=>{const r=parseInt(s.r)||0,rir=parseInt(s.rir);return r>=12&&!isNaN(rir)&&rir>=3;});}
+function weekKey(){const d=new Date(),dy=d.getDay(),m=new Date(d);m.setDate(d.getDate()-(dy===0?6:dy-1));return m.toISOString().slice(0,10);}
+function lk(wid){return weekKey()+'_'+wid;}
+
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  if(name==='home')renderHome();
+  if(name==='manage')renderManage();
+  if(name==='history'){renderHistory();renderChart(curChartFilter);}
+  window.scrollTo(0,0);
+}
+
+function renderHome(){
+  const c=document.getElementById('homePills');c.innerHTML='';
+  let done=0;
+  [...D.workouts].reverse().forEach((w,ri)=>{
+    const i=D.workouts.length-1-ri;
+    const fin=D.logs[lk(w.id)]&&D.logs[lk(w.id)].finished;
+    if(fin)done++;
+    const p=document.createElement('div');p.className='pill'+(fin?' done':'');
+    p.innerHTML=`<div class="pill-check ${fin?'ck':''}">${fin?'✓':''}</div><div class="pill-num">${i+1}</div><div class="pill-lbl">אימון</div>`;
+    p.onclick=()=>startWorkout(w.id);c.appendChild(p);
+  });
+  const pct=Math.round((done/4)*100);
+  document.getElementById('homeRingPct').textContent=pct+'%';
+  document.getElementById('homeWeekSub').textContent=done+' מתוך 4';
+  document.getElementById('homeRing').style.strokeDashoffset=126-(pct/100)*126;
+  if(D.weight)document.getElementById('weightDisplay').textContent=parseFloat(D.weight).toFixed(1)+' ק״ג';
+}
+
+function startWorkout(wid){
+  curWid=wid;curExIdx=0;curSetIdx=0;setData={};workoutStart=Date.now();poApplied={};
+  const exs=D.exercises[wid]||[];
+  exs.forEach((_,ei)=>{setData[ei]=[{w:'',r:'',rir:''},{w:'',r:'',rir:''},{w:'',r:'',rir:''}];});
+  renderExercise();showScreen('exercise');
+}
+
+function renderExercise(){
+  const exs=D.exercises[curWid]||[];
+  const ex=exs[curExIdx]||'';
+  document.getElementById('exCounter').textContent='תרגיל '+(curExIdx+1)+'/'+exs.length;
+  document.getElementById('exName').textContent=ex;
+  const bw=getBaseWeight(ex);
+  const hint=document.getElementById('poHint');
+  if(bw){hint.textContent='המשקל המומלץ היום: '+bw+' ק״ג';hint.classList.add('show');}else hint.classList.remove('show');
+  const nxt=exs[curExIdx+1];
+  const prev=document.getElementById('nextExPreview');
+  if(nxt){prev.style.display='block';document.getElementById('nextExName').textContent=nxt;}else prev.style.display='none';
+  renderSets();
+}
+
+function renderSets(){
+  const area=document.getElementById('setsArea');area.innerHTML='';
+  const sets=setData[curExIdx]||[{w:'',r:'',rir:''},{w:'',r:'',rir:''},{w:'',r:'',rir:''}];
+  const ex=(D.exercises[curWid]||[])[curExIdx]||'';
+  const bw=getBaseWeight(ex);
+  sets.forEach((s,si)=>{
+    const isActive=si===curSetIdx,isDone=si<curSetIdx;
+    const div=document.createElement('div');div.className='set-item'+(isActive?' active-set':'');
+    if(isActive){
+      div.innerHTML=`<div class="set-bubble">${si+1}</div><div style="flex:1;margin-right:12px;"><div class="active-inputs"><div class="ainp-wrap"><div class="ainp-lbl">משקל (ק״ג)</div><input class="ainp" type="number" min="0" step="0.5" placeholder="${bw||'0'}" id="inp-w" value="${s.w||bw||''}"/>${bw?`<div class="prev-val">מומלץ: ${bw}</div>`:''}</div><div class="ainp-wrap"><div class="ainp-lbl">חזרות</div><input class="ainp" type="number" min="1" placeholder="0" id="inp-r" value="${s.r}"/></div><div class="ainp-wrap"><div class="ainp-lbl">RIR</div><input class="ainp" type="number" min="0" max="10" placeholder="0-10" id="inp-rir" value="${s.rir}"/></div></div><div style="text-align:center;margin-top:6px;"><span class="set-type-badge">סוג הסט: סט רגיל</span></div></div>`;
+    } else {
+      div.innerHTML=`<div class="set-bubble ${isDone?'done-b':''}">${isDone?'✓':si+1}</div><div class="set-vals" style="margin-right:14px;"><div class="set-field"><div class="set-num">${isDone&&s.w?s.w:'—'}</div><div class="set-unit">ק״ג</div></div><div class="set-divider"></div><div class="set-field"><div class="set-num">${isDone&&s.r?s.r:'—'}</div><div class="set-unit">חזרות</div></div></div>`;
+      if(!isDone)div.onclick=()=>{curSetIdx=si;renderSets();}
+    }
+    area.appendChild(div);
+  });
+  document.getElementById('finishSetBtn').textContent=curSetIdx>=2?'סיים תרגיל ✓':'סיים סט';
+}
+
+function saveCurrentInputs(){
+  const wi=document.getElementById('inp-w'),ri=document.getElementById('inp-r'),riri=document.getElementById('inp-rir');
+  if(wi&&setData[curExIdx])setData[curExIdx][curSetIdx]={w:wi.value,r:ri.value,rir:riri.value};
+}
+
+function applyPOIfNeeded(exIdx){
+  const ex=(D.exercises[curWid]||[])[exIdx];
+  if(!ex||poApplied[exIdx])return;
+  const sets=setData[exIdx];
+  if(shouldPO(sets)){
+    const curW=parseFloat(sets[0].w)||getBaseWeight(ex)||0;
+    if(curW>0){
+      const step=poStep(curWid);
+      const newW=parseFloat((curW+step).toFixed(1));
+      setBaseWeight(ex,newW);poApplied[exIdx]=true;
+      showToast('↑ '+ex+'\n+'+step+' ק״ג → '+newW+' ק״ג שבוע הבא 💪');
+    }
+  } else if(sets&&sets[0]&&sets[0].w){
+    const avg=sets.reduce((a,s)=>a+(parseFloat(s.w)||0),0)/sets.length;
+    if(avg>0)setBaseWeight(ex,parseFloat(avg.toFixed(1)));
+  }
+}
+
+function showToast(msg){
+  const t=document.getElementById('poToast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function finishCurrentSet(){
+  saveCurrentInputs();
+  const exs=D.exercises[curWid]||[];
+  if(curSetIdx<2){
+    curSetIdx++;renderSets();
+    startRestTimer(exs[curExIdx+1]||null);
+  } else {
+    applyPOIfNeeded(curExIdx);
+    if(curExIdx<exs.length-1){
+      startRestTimer(exs[curExIdx+1]||null);
+      curExIdx++;curSetIdx=0;setTimeout(()=>renderExercise(),0);
+    } else finishWorkout();
+  }
+}
+
+function goNextExercise(){
+  saveCurrentInputs();
+  const exs=D.exercises[curWid]||[];
+  if(curExIdx<exs.length-1){curExIdx++;curSetIdx=0;renderExercise();}
+}
+
+function getAudio(){if(!audioCtx){try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}return audioCtx;}
+function beep(freq,dur,vol){const ctx=getAudio();if(!ctx)return;const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=freq;o.type='sine';g.gain.setValueAtTime(vol||0.25,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);o.start();o.stop(ctx.currentTime+dur);}
+
+function startRestTimer(nxt){
+  stopRestTimer();restRemain=restTotal=120;
+  document.getElementById('restNextLbl').textContent=nxt?'תרגיל הבא: '+nxt:'';
+  document.getElementById('restOverlay').classList.add('show');
+  updateRestDisp();
+  restTimer=setInterval(()=>{restRemain--;updateRestDisp();if(restRemain<=5&&restRemain>0)beep(880,0.1,0.2);if(restRemain===0){beep(1046,0.3,0.3);stopRestTimer();}},1000);
+}
+function updateRestDisp(){
+  const m=Math.floor(restRemain/60),s=restRemain%60;
+  const el=document.getElementById('restDisp');
+  el.textContent=m+':'+(s<10?'0':'')+s;
+  el.className='rest-time'+(restRemain<=5?' alert':'');
+  document.getElementById('restRingC').style.strokeDashoffset=515*(1-restRemain/restTotal);
+  document.getElementById('restRingC').style.stroke=restRemain<=5?'#f4a0b5':'#c9849a';
+}
+function stopRestTimer(){if(restTimer){clearInterval(restTimer);restTimer=null;}document.getElementById('restOverlay').classList.remove('show');}
+function skipRest(){stopRestTimer();}
+
+function finishWorkout(){
+  stopRestTimer();
+  const exs=D.exercises[curWid]||[];
+  const elapsed=Math.round((Date.now()-workoutStart)/1000);
+  const h=Math.floor(elapsed/3600),m=Math.floor((elapsed%3600)/60),s=elapsed%60;
+  const timeStr=(h?h+':':'')+(m<10&&h?'0':'')+m+':'+(s<10?'0':'')+s;
+  let totalSets=0,totalVol=0,poCount=0;
+  exs.forEach((_,ei)=>{(setData[ei]||[]).forEach(st=>{if(st.w||st.r){totalSets++;totalVol+=(parseFloat(st.w)||0)*(parseFloat(st.r)||0);}});if(poApplied[ei])poCount++;});
+  document.getElementById('finTime').textContent=timeStr;
+  document.getElementById('finSets').textContent=totalSets;
+  document.getElementById('finVol').textContent=totalVol>999?(totalVol/1000).toFixed(1)+'k':totalVol;
+  const fl=document.getElementById('finExList');fl.innerHTML='';
+  exs.forEach((ex,ei)=>{
+    let totReps=0,vol=0;(setData[ei]||[]).forEach(st=>{totReps+=(parseInt(st.r)||0);vol+=(parseFloat(st.w)||0)*(parseFloat(st.r)||0);});
+    const row=document.createElement('div');row.className='fin-ex-row';
+    row.innerHTML=`<span class="fin-ex-name">${ex}</span><div class="fin-ex-badges"><span class="fin-badge badge-reps">+${totReps} חזרות</span><span class="fin-badge badge-vol">${vol} נפח</span>${poApplied[ei]?`<span class="fin-badge badge-po">↑ ${D.baseWeights[ex]}ק״ג</span>`:''}</div>`;
+    fl.appendChild(row);
+  });
+  if(poCount>0){const n=document.createElement('div');n.style.cssText='background:rgba(168,216,160,0.08);border:0.5px solid rgba(168,216,160,0.2);border-radius:12px;padding:12px;margin-top:14px;text-align:center;font-size:13px;color:#a8d8a0;';n.textContent='עדכנת '+poCount+' תרגיל'+(poCount>1?'ים':'')+' — המשקל יעלה שבוע הבא 💪';fl.appendChild(n);}
+  const logK=lk(curWid);if(!D.logs[logK])D.logs[logK]={};
+  Object.assign(D.logs[logK],{finished:true,date:new Date().toLocaleDateString('he-IL'),workoutName:D.workouts.find(x=>x.id===curWid)?.name||curWid,wid:curWid,sets:totalSets,volume:totalVol,time:timeStr,weekKey:weekKey(),poCount});
+  sv(D);showScreen('finish');
+}
+
+function switchHistTab(tab){
+  curHistTab=tab;
+  document.getElementById('histChartTab').style.display=tab==='chart'?'block':'none';
+  document.getElementById('histLogTab').style.display=tab==='log'?'flex':'none';
+  document.getElementById('tab-chart').className='tab-btn'+(tab==='chart'?' on':'');
+  document.getElementById('tab-log').className='tab-btn'+(tab==='log'?' on':'');
+  if(tab==='chart')renderChart(curChartFilter);else renderLogList();
+}
+
+function setChartFilter(filter,btn){curChartFilter=filter;document.querySelectorAll('.ctab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderChart(filter);}
+
+function renderChart(filter){
+  const allLogs=Object.values(D.logs).filter(l=>l.finished&&l.weekKey);
+  const byWeek={};
+  allLogs.forEach(l=>{if(filter!=='all'&&l.wid!==filter)return;if(!byWeek[l.weekKey])byWeek[l.weekKey]=0;byWeek[l.weekKey]+=(l.volume||0);});
+  const weeks=Object.keys(byWeek).sort();
+  const labels=weeks.map((w,i)=>'W'+(i+1));
+  const values=weeks.map(w=>byWeek[w]);
+  const canvas=document.getElementById('mainChart');if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  if(chartInstance){chartInstance.destroy();chartInstance=null;}
+  if(!values.length){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle='rgba(255,255,255,0.18)';ctx.font='14px sans-serif';ctx.textAlign='center';ctx.fillText('סיימי אימון ראשון לראות את הגרף',canvas.width/2,80);document.getElementById('chartPct').textContent='—';return;}
+  if(values.length>=2){const f=values[0],l=values[values.length-1],pct=f>0?Math.round(((l-f)/f)*100):0;document.getElementById('chartPct').textContent=(pct>=0?'+':'')+pct+'%';}
+  const grad=ctx.createLinearGradient(0,0,0,150);grad.addColorStop(0,'rgba(201,132,154,0.3)');grad.addColorStop(1,'rgba(201,132,154,0)');
+  chartInstance=new Chart(ctx,{type:'line',data:{labels,datasets:[{data:values,borderColor:'#c9849a',borderWidth:2.5,backgroundColor:grad,fill:true,tension:0.45,pointBackgroundColor:'#c9849a',pointRadius:5,pointHoverRadius:7}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a1214',borderColor:'rgba(201,132,154,0.25)',borderWidth:1,titleColor:'#fff',bodyColor:'#e8b4c4',callbacks:{label:c=>c.parsed.y.toLocaleString()+' נפח'}}},scales:{x:{grid:{color:'rgba(201,132,154,0.06)'},ticks:{color:'rgba(255,255,255,0.3)',font:{size:11}}},y:{grid:{color:'rgba(201,132,154,0.06)'},ticks:{color:'rgba(255,255,255,0.3)',font:{size:11},callback:v=>v>999?(v/1000).toFixed(1)+'k':v}}}}});
+  const c=document.getElementById('weekSummaryCards');c.innerHTML='';
+  const wk=weekKey();let wv=0,ws=0;
+  D.workouts.forEach(w=>{const lg=D.logs[wk+'_'+w.id];if(lg&&lg.finished){wv+=(lg.volume||0);ws+=(lg.sets||0);}});
+  [{l:'נפח שבועי',v:wv>999?(wv/1000).toFixed(1)+'k':wv||'0'},{l:'סטים שבוע',v:ws||'0'}].forEach(it=>{const d=document.createElement('div');d.style.cssText='flex:1;background:rgba(201,132,154,0.05);border:0.5px solid rgba(201,132,154,0.1);border-radius:14px;padding:12px;text-align:center;';d.innerHTML=`<div style="font-size:11px;color:rgba(255,255,255,0.3);margin-bottom:4px;">${it.l}</div><div style="font-size:20px;font-weight:600;color:#e8b4c4;">${it.v}</div>`;c.appendChild(d);});
+}
+
+function renderLogList(){
+  const c=document.getElementById('histList');c.innerHTML='';
+  const keys=Object.keys(D.logs).filter(k=>D.logs[k].finished).reverse();
+  if(!keys.length){c.innerHTML='<div class="hist-empty">עוד לא הושלמו אימונים</div>';return;}
+  keys.forEach(k=>{const lg=D.logs[k];const item=document.createElement('div');item.className='hitem';item.innerHTML=`<div class="hitem-top"><span class="hitem-name">${lg.workoutName||k}</span><span class="hitem-date">${lg.date||''}</span></div><div class="hitem-stats"><span class="hitem-stat">⏱ <span>${lg.time||'—'}</span></span><span class="hitem-stat">🏋️ <span>${lg.sets||0}</span> סטים</span><span class="hitem-stat">⚖️ <span>${lg.volume>999?(lg.volume/1000).toFixed(1)+'k':lg.volume||0}</span></span>${lg.poCount>0?`<span class="hitem-stat">↑ <span>${lg.poCount} PO</span></span>`:''}</div>`;c.appendChild(item);});
+}
+
+function renderHistory(){if(curHistTab==='chart')renderChart(curChartFilter);else renderLogList();}
+
+function renderManage(){
+  const list=document.getElementById('manageList');list.innerHTML='';
+  const sel=document.getElementById('newExWorkout');sel.innerHTML='<option value="">בחר אימון</option>';
+  D.workouts.forEach(w=>{
+    const exs=D.exercises[w.id]||[];const sec=document.createElement('div');
+    sec.innerHTML=`<div class="sec-lbl">${w.name}</div>`;
+    exs.forEach((ex,i)=>{const bw=D.baseWeights[ex];const row=document.createElement('div');row.className='mrow';row.innerHTML=`<div><div class="mrow-name">${ex}</div>${bw?`<div class="mrow-weight">משקל נוכחי: ${bw} ק״ג</div>`:''}</div><button class="del-btn" onclick="delEx('${w.id}',${i})">הסר</button>`;sec.appendChild(row);});
+    list.appendChild(sec);const o=document.createElement('option');o.value=w.id;o.textContent=w.name;sel.appendChild(o);
+  });
+}
+function addExercise(){const name=document.getElementById('newExName').value.trim(),wid=document.getElementById('newExWorkout').value;if(!name||!wid)return;if(!D.exercises[wid])D.exercises[wid]=[];D.exercises[wid].push(name);sv(D);document.getElementById('newExName').value='';renderManage();}
+function delEx(wid,idx){D.exercises[wid].splice(idx,1);sv(D);renderManage();}
+function openWeightModal(){document.getElementById('wModal').classList.add('show');if(D.weight)document.getElementById('wInput').value=D.weight;}
+function closeWeightModal(){document.getElementById('wModal').classList.remove('show');}
+function saveWeight(){const v=document.getElementById('wInput').value;if(!v)return;D.weight=parseFloat(v).toFixed(1);sv(D);closeWeightModal();renderHome();}
+
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}
+renderHome();
+</script>
+</body>
+</html>
