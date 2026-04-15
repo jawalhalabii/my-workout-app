@@ -70,6 +70,16 @@ body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
 .set-num{font-size:22px;font-weight:600;color:#fff;}
 .set-unit{font-size:12px;color:rgba(255,255,255,0.35);margin-top:1px;}
 .set-type-badge{font-size:10px;color:rgba(255,255,255,0.25);background:rgba(255,255,255,0.06);border-radius:6px;padding:2px 8px;margin-top:6px;display:inline-block;}
+.rir-selector{display:none;flex-direction:row;gap:7px;margin-top:10px;justify-content:center;flex-wrap:nowrap;}
+.rir-selector.open{display:flex;}
+.rir-bubble{width:34px;height:34px;border-radius:50%;border:1.5px solid rgba(201,132,154,0.3);background:rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:rgba(255,255,255,0.5);cursor:pointer;transition:background .12s,border-color .12s;flex-shrink:0;}
+.rir-bubble:active{background:rgba(201,132,154,0.2);}
+.rir-bubble.selected{background:var(--pk);border-color:var(--pk);color:#fff;}
+.rir-display{display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;padding:4px 0;}
+.rir-val{font-size:22px;font-weight:600;color:#fff;}
+.rir-tap-hint{font-size:11px;color:rgba(201,132,154,0.6);}
+/* RIR in closed sets */
+.set-rir-badge{font-size:11px;color:var(--pk-light);background:rgba(201,132,154,0.1);border-radius:6px;padding:2px 7px;margin-top:3px;display:inline-block;}
 .active-inputs{display:flex;gap:8px;margin-top:12px;}
 .ainp-wrap{flex:1;text-align:center;}
 .ainp-lbl{font-size:11px;color:rgba(255,255,255,0.3);margin-bottom:4px;}
@@ -79,17 +89,22 @@ body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
 .next-ex-preview{margin:10px 20px 0;padding:12px;background:rgba(255,255,255,0.03);border-radius:14px;}
 .nep-lbl{font-size:11px;color:rgba(255,255,255,0.3);margin-bottom:4px;}
 .nep-name{font-size:13px;color:rgba(255,255,255,0.55);}
-.finish-set-btn{margin:12px 20px 20px;padding:17px;background:var(--pk);border:none;border-radius:20px;font-size:17px;font-weight:600;color:#fff;cursor:pointer;font-family:inherit;width:calc(100% - 40px);}
+.finish-set-btn{margin:12px 20px 20px;padding:17px;background:var(--pk);border:none;border-radius:20px;font-size:17px;font-weight:600;color:#fff;cursor:pointer;font-family:inherit;width:calc(100% - 40px);}.rest-active-padding{padding-bottom:120px !important;}
 .finish-set-btn:active{background:var(--pk-dark);}
 
 /* REST TIMER */
-.rest-overlay{display:none;position:fixed;inset:0;background:rgba(15,13,14,0.97);z-index:200;flex-direction:column;align-items:center;justify-content:center;}
+.rest-overlay{display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:200;flex-direction:column;pointer-events:none;}
 .rest-overlay.show{display:flex;}
-.rest-title{font-size:14px;color:rgba(255,255,255,0.35);margin-bottom:4px;}
-.rest-time{font-size:76px;font-weight:300;color:#fff;letter-spacing:4px;font-variant-numeric:tabular-nums;margin-top:16px;}
-.rest-time.alert{color:#f4a0b5;}
-.rest-skip{padding:14px 52px;background:rgba(201,132,154,0.1);border:0.5px solid rgba(201,132,154,0.25);border-radius:50px;font-size:16px;color:rgba(255,255,255,0.55);cursor:pointer;font-family:inherit;margin-top:28px;}
-.rest-next-lbl{font-size:13px;color:rgba(255,255,255,0.28);margin-top:16px;text-align:center;}
+/* big ring in center of screen */
+.rest-ring-center{pointer-events:all;align-self:center;margin-bottom:8px;}
+.rest-ring-center svg{transform:rotate(-90deg);}
+/* bottom info bar */
+.rest-bottom-bar{display:flex;align-items:center;gap:12px;background:#1a1014;border-top:0.5px solid rgba(201,132,154,0.25);padding:12px 20px 32px;pointer-events:all;width:100%;}
+.rest-bar-info{flex:1;text-align:right;}
+.rest-title{font-size:12px;color:rgba(255,255,255,0.35);margin-bottom:2px;}
+.rest-next-lbl{font-size:14px;color:var(--pk-light);font-weight:500;}
+.rest-skip{padding:8px 16px;background:rgba(201,132,154,0.1);border:0.5px solid rgba(201,132,154,0.25);border-radius:20px;font-size:13px;color:rgba(255,255,255,0.5);cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;}
+
 
 /* FINISH */
 .fin-screen{padding:56px 20px 32px;flex:1;overflow-y:auto;}
@@ -166,22 +181,90 @@ body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
 /* TOAST */
 .toast{position:fixed;top:100px;left:50%;transform:translateX(-50%);background:#1a1214;border:0.5px solid rgba(168,216,160,0.4);border-radius:14px;padding:12px 20px;font-size:13px;color:#a8d8a0;z-index:500;text-align:center;direction:rtl;pointer-events:none;opacity:0;transition:opacity .3s;}
 .toast.show{opacity:1;}
+
+/* MEASUREMENTS */
+.meas-top{padding:56px 20px 16px;direction:rtl;}
+.meas-ttl{font-size:24px;font-weight:600;}
+.meas-date-row{display:flex;align-items:center;justify-content:space-between;margin:0 14px 14px;direction:rtl;}
+.meas-date-lbl{font-size:13px;color:rgba(255,255,255,0.4);}
+.meas-add-btn{padding:8px 16px;background:var(--pk-dim);border:0.5px solid var(--pk-border);border-radius:20px;font-size:13px;color:var(--pk-light);cursor:pointer;font-family:inherit;}
+.meas-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 14px;direction:rtl;}
+.meas-card{background:rgba(201,132,154,0.05);border:0.5px solid rgba(201,132,154,0.12);border-radius:16px;padding:16px 14px;}
+.meas-card-lbl{font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:6px;}
+.meas-card-val{font-size:26px;font-weight:600;color:#fff;}
+.meas-card-unit{font-size:12px;color:rgba(255,255,255,0.35);margin-right:3px;}
+.meas-card-delta{font-size:11px;margin-top:4px;}
+.meas-card-delta.up{color:#f4a0b5;}
+.meas-card-delta.down{color:#a8d8a0;}
+.meas-card-delta.same{color:rgba(255,255,255,0.3);}
+.meas-history{padding:0 14px 20px;direction:rtl;}
+.meas-hist-ttl{font-size:13px;font-weight:500;color:rgba(255,255,255,0.4);margin-bottom:10px;}
+.meas-hist-item{background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px 14px;margin-bottom:8px;}
+.meas-hist-date{font-size:12px;color:rgba(255,255,255,0.3);margin-bottom:8px;}
+.meas-hist-vals{display:flex;flex-wrap:wrap;gap:8px;}
+.meas-hist-val{font-size:12px;color:rgba(255,255,255,0.6);}
+.meas-hist-val span{color:var(--pk-light);font-weight:500;}
+
+/* MEASUREMENT INPUT MODAL */
+.meas-modal-box{background:#1a1214;border:0.5px solid rgba(201,132,154,0.2);border-radius:20px;padding:24px;margin:0 16px;width:calc(100% - 32px);max-height:85vh;overflow-y:auto;}
+.meas-modal-ttl{font-size:17px;font-weight:600;color:#fff;margin-bottom:18px;text-align:right;}
+.meas-input-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;direction:rtl;}
+.meas-input-lbl{font-size:14px;color:rgba(255,255,255,0.7);flex:1;}
+.meas-input-field{display:flex;align-items:center;gap:6px;}
+.meas-inp{width:80px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(201,132,154,0.2);border-radius:10px;padding:9px 10px;font-size:16px;color:#fff;outline:none;text-align:center;font-family:inherit;}
+.meas-inp:focus{border-color:var(--pk-border);background:var(--pk-dim);}
+.meas-inp-unit{font-size:12px;color:rgba(255,255,255,0.3);}
+
+/* MESOCYCLE */
+.meso-banner{margin:0 14px 12px;border-radius:16px;padding:14px 16px;direction:rtl;position:relative;overflow:hidden;}
+.meso-banner.accumulation{background:rgba(201,132,154,0.08);border:0.5px solid rgba(201,132,154,0.2);}
+.meso-banner.peak{background:rgba(232,100,80,0.1);border:0.5px solid rgba(232,100,80,0.3);}
+.meso-banner.deload{background:rgba(168,216,160,0.08);border:0.5px solid rgba(168,216,160,0.25);}
+.meso-week-label{font-size:11px;font-weight:500;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;}
+.meso-banner.accumulation .meso-week-label{color:var(--pk);}
+.meso-banner.peak .meso-week-label{color:#e86450;}
+.meso-banner.deload .meso-week-label{color:#a8d8a0;}
+.meso-week-title{font-size:16px;font-weight:600;color:#fff;margin-bottom:2px;}
+.meso-week-desc{font-size:12px;color:rgba(255,255,255,0.45);margin-bottom:10px;}
+.meso-progress{display:flex;gap:4px;align-items:center;}
+.meso-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.12);}
+.meso-dot.done{background:var(--pk);}
+.meso-dot.current{background:#fff;box-shadow:0 0 0 2px var(--pk);}
+.meso-dot.peak-dot.done{background:#e86450;}
+.meso-dot.peak-dot.current{background:#fff;box-shadow:0 0 0 2px #e86450;}
+.meso-dot.deload-dot.done{background:#a8d8a0;}
+.meso-dot.deload-dot.current{background:#fff;box-shadow:0 0 0 2px #a8d8a0;}
+.meso-rir-hint{font-size:11px;margin-top:8px;padding:5px 10px;border-radius:8px;display:inline-block;}
+.meso-banner.accumulation .meso-rir-hint{background:rgba(201,132,154,0.12);color:var(--pk-light);}
+.meso-banner.peak .meso-rir-hint{background:rgba(232,100,80,0.12);color:#f4a090;}
+.meso-banner.deload .meso-rir-hint{background:rgba(168,216,160,0.12);color:#a8d8a0;}
+.meso-reset-btn{font-size:11px;color:rgba(255,255,255,0.2);background:none;border:none;cursor:pointer;font-family:inherit;margin-top:6px;display:block;}
 </style>
 </head>
 <body>
 
 <!-- REST TIMER -->
 <div class="rest-overlay" id="restOverlay">
-  <div class="rest-title">זמן מנוחה</div>
-  <svg width="190" height="190" viewBox="0 0 190 190" style="margin-top:8px;">
-    <circle cx="95" cy="95" r="82" fill="none" stroke="rgba(201,132,154,0.1)" stroke-width="7"/>
-    <circle id="restRingC" cx="95" cy="95" r="82" fill="none" stroke="#c9849a" stroke-width="7"
-      stroke-dasharray="515" stroke-dashoffset="0" stroke-linecap="round"
-      style="transform:rotate(-90deg);transform-origin:center;transition:stroke-dashoffset .9s linear,stroke .3s;"/>
-  </svg>
-  <div class="rest-time" id="restDisp">2:00</div>
-  <div class="rest-next-lbl" id="restNextLbl"></div>
-  <button class="rest-skip" onclick="skipRest()">דלג על מנוחה</button>
+  <div class="rest-ring-center">
+    <svg width="160" height="160" viewBox="0 0 160 160">
+      <circle cx="80" cy="80" r="68" fill="rgba(15,13,14,0.82)" stroke="rgba(201,132,154,0.15)" stroke-width="7"/>
+      <g transform="rotate(-90 80 80)">
+        <circle id="restRingC" cx="80" cy="80" r="68" fill="none" stroke="#c9849a" stroke-width="7"
+          stroke-dasharray="427" stroke-dashoffset="0" stroke-linecap="round"
+          style="transition:stroke-dashoffset .9s linear,stroke .3s;"/>
+      </g>
+      <text id="restDisp" x="80" y="80" text-anchor="middle" dominant-baseline="central"
+        font-size="36" font-weight="300" letter-spacing="1" fill="#fff"
+        font-family="-apple-system,BlinkMacSystemFont,sans-serif">2:00</text>
+    </svg>
+  </div>
+  <div class="rest-bottom-bar">
+    <button class="rest-skip" onclick="skipRest()">דלג</button>
+    <div class="rest-bar-info">
+      <div class="rest-title">זמן מנוחה</div>
+      <div class="rest-next-lbl" id="restNextLbl">—</div>
+    </div>
+  </div>
 </div>
 
 <!-- TOAST -->
@@ -196,7 +279,10 @@ body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
     <div class="hero-hi">היי</div>
     <div class="hero-name" id="heroName">ג׳וואל</div>
   </div>
-  <div class="glass" style="margin-top:8px;">
+  <!-- MESOCYCLE BANNER -->
+  <div id="mesoBanner"></div>
+
+  <div class="glass" style="margin-top:0;">
     <div class="card-hdr"><span style="font-size:16px;opacity:.45">🏋️</span><span class="card-ttl">אימונים השבוע</span></div>
     <div class="pills-row" id="homePills"></div>
   </div>
@@ -220,6 +306,17 @@ body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
       <div class="scard-sub" id="homeWeekSub">0 מתוך 4</div>
     </div>
   </div>
+  <!-- MEASUREMENTS CARD -->
+  <div class="glass" style="margin-top:0;cursor:pointer;" onclick="openMeasModal()">
+    <div class="card-hdr">
+      <span style="font-size:15px;opacity:.45">📏</span>
+      <span class="card-ttl">מדידות גוף</span>
+    </div>
+    <div id="measCardContent">
+      <div style="text-align:center;padding:12px 0;font-size:13px;color:rgba(255,255,255,0.28);">לחצי להוסיף מדידה ראשונה</div>
+    </div>
+  </div>
+
   <div class="bnav">
     <button class="nb" onclick="showScreen('history')"><span class="ni">📋</span>היסטוריה</button>
     <button class="nb" onclick="showScreen('manage')"><span class="ni">⚙️</span>תרגילים</button>
@@ -249,19 +346,44 @@ body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
 <!-- FINISH -->
 <div class="screen" id="screen-finish">
   <div class="fin-screen">
+
+    <!-- close btn -->
+    <button onclick="showScreen('home')" style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:22px;cursor:pointer;padding:0;margin-bottom:16px;display:block;">✕</button>
+
+    <!-- title -->
     <div class="fin-title">אימון מעולה!</div>
     <div class="fin-sub">סיימת את האימון שלך בהצלחה.</div>
+
+    <!-- 3 stats -->
     <div class="fin-stats">
-      <div class="fin-stat"><div class="fin-stat-ico">⏱️</div><div class="fin-stat-val" id="finTime">—</div><div class="fin-stat-lbl">זמן אימון</div></div>
+      <div class="fin-stat">
+        <div class="fin-stat-ico">⏱️</div>
+        <div class="fin-stat-val" id="finTime">—</div>
+        <div class="fin-stat-lbl">זמן אימון</div>
+      </div>
       <div class="fin-divider"></div>
-      <div class="fin-stat"><div class="fin-stat-ico">🏋️</div><div class="fin-stat-val" id="finSets">—</div><div class="fin-stat-lbl">סטים</div></div>
+      <div class="fin-stat">
+        <div class="fin-stat-ico">🏋️</div>
+        <div class="fin-stat-val" id="finSets">—</div>
+        <div class="fin-stat-lbl">סטים</div>
+      </div>
       <div class="fin-divider"></div>
-      <div class="fin-stat"><div class="fin-stat-ico">⚖️</div><div class="fin-stat-val" id="finVol">—</div><div class="fin-stat-lbl">נפח אימון</div></div>
+      <div class="fin-stat">
+        <div class="fin-stat-ico">⚖️</div>
+        <div class="fin-stat-val" id="finVol">—</div>
+        <div class="fin-stat-lbl">נפח אימון</div>
+      </div>
     </div>
-    <div class="fin-section-ttl">סיכום תרגילים</div>
+
+    <!-- exercise comparison table -->
+    <div class="fin-section-ttl">לעומת שבוע שעבר</div>
     <div id="finExList"></div>
-    <button class="share-btn" onclick="showScreen('history')">צפי בהתקדמות ↗</button>
-    <button class="share-btn" style="background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.5);margin-top:10px;" onclick="showScreen('home')">סגור</button>
+
+    <!-- PO note -->
+    <div id="finPoNote"></div>
+
+    <!-- close button -->
+    <button class="share-btn" onclick="showScreen('home')" style="margin-top:20px;">סגור</button>
   </div>
 </div>
 
@@ -337,16 +459,16 @@ body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
 const SK='workout_pwa_v1';
 const DEF={
   workouts:[
-    {id:'upper1',name:'פלג עליון A',type:'upper'},
     {id:'lower1',name:'פלג תחתון A',type:'lower'},
-    {id:'upper2',name:'פלג עליון B',type:'upper'},
+    {id:'upper1',name:'פלג עליון A',type:'upper'},
     {id:'lower2',name:'פלג תחתון B',type:'lower'},
+    {id:'upper2',name:'פלג עליון B',type:'upper'},
   ],
   exercises:{
-    upper1:['לחיצת חזה','שכיבות שמיכה','כתפיים'],
     lower1:['סקוואט','לג קרל','קאלף רייז'],
-    upper2:['מכונת חזה','כבל כתפיים','טרייספס'],
+    upper1:['לחיצת חזה','שכיבות שמיכה','כתפיים'],
     lower2:['לג פרס','רומניאן דד','חטיפה'],
+    upper2:['מכונת חזה','כבל כתפיים','טרייספס'],
   },
   baseWeights:{},logs:{},weight:null
 };
@@ -363,6 +485,7 @@ function getBaseWeight(ex){return D.baseWeights[ex]||null;}
 function setBaseWeight(ex,w){D.baseWeights[ex]=parseFloat(w);sv(D);}
 function shouldPO(sets){if(!sets||sets.length<3)return false;return sets.every(s=>{const r=parseInt(s.r)||0,rir=parseInt(s.rir);return r>=12&&!isNaN(rir)&&rir>=3;});}
 function weekKey(){const d=new Date(),dy=d.getDay(),m=new Date(d);m.setDate(d.getDate()-(dy===0?6:dy-1));return m.toISOString().slice(0,10);}
+function getPrevWeekKey(){const d=new Date();d.setDate(d.getDate()-7);const dy=d.getDay(),m=new Date(d);m.setDate(d.getDate()-(dy===0?6:dy-1));return m.toISOString().slice(0,10);}
 function lk(wid){return weekKey()+'_'+wid;}
 
 function showScreen(name){
@@ -377,8 +500,7 @@ function showScreen(name){
 function renderHome(){
   const c=document.getElementById('homePills');c.innerHTML='';
   let done=0;
-  [...D.workouts].reverse().forEach((w,ri)=>{
-    const i=D.workouts.length-1-ri;
+  D.workouts.forEach((w,i)=>{
     const fin=D.logs[lk(w.id)]&&D.logs[lk(w.id)].finished;
     if(fin)done++;
     const p=document.createElement('div');p.className='pill'+(fin?' done':'');
@@ -390,6 +512,8 @@ function renderHome(){
   document.getElementById('homeWeekSub').textContent=done+' מתוך 4';
   document.getElementById('homeRing').style.strokeDashoffset=126-(pct/100)*126;
   if(D.weight)document.getElementById('weightDisplay').textContent=parseFloat(D.weight).toFixed(1)+' ק״ג';
+  renderMeasurements();
+  renderMesoBanner();
 }
 
 function startWorkout(wid){
@@ -422,9 +546,47 @@ function renderSets(){
     const isActive=si===curSetIdx,isDone=si<curSetIdx;
     const div=document.createElement('div');div.className='set-item'+(isActive?' active-set':'');
     if(isActive){
-      div.innerHTML=`<div class="set-bubble">${si+1}</div><div style="flex:1;margin-right:12px;"><div class="active-inputs"><div class="ainp-wrap"><div class="ainp-lbl">משקל (ק״ג)</div><input class="ainp" type="number" min="0" step="0.5" placeholder="${bw||'0'}" id="inp-w" value="${s.w||bw||''}"/>${bw?`<div class="prev-val">מומלץ: ${bw}</div>`:''}</div><div class="ainp-wrap"><div class="ainp-lbl">חזרות</div><input class="ainp" type="number" min="1" placeholder="0" id="inp-r" value="${s.r}"/></div><div class="ainp-wrap"><div class="ainp-lbl">RIR</div><input class="ainp" type="number" min="0" max="10" placeholder="0-10" id="inp-rir" value="${s.rir}"/></div></div><div style="text-align:center;margin-top:6px;"><span class="set-type-badge">סוג הסט: סט רגיל</span></div></div>`;
+      const curRir=s.rir!==''?parseInt(s.rir):-1;
+      const bubbles=Array.from({length:6},(_,i)=>`<div class="rir-bubble${curRir===i?' selected':''}" onclick="selectRir(${i})">${i}</div>`).join('');
+      const rirLabel=curRir>=0?curRir:'—';
+      div.innerHTML=`
+        <div class="set-bubble">${si+1}</div>
+        <div style="flex:1;margin-right:12px;">
+          <div class="active-inputs">
+            <div class="ainp-wrap">
+              <div class="ainp-lbl">משקל (ק״ג)</div>
+              <input class="ainp" type="number" min="0" step="0.5" placeholder="${bw||'0'}" id="inp-w" value="${s.w||bw||''}"/>
+              ${bw?`<div class="prev-val">מומלץ: ${bw}</div>`:''}
+            </div>
+            <div class="ainp-wrap">
+              <div class="ainp-lbl">חזרות</div>
+              <input class="ainp" type="number" min="1" placeholder="0" id="inp-r" value="${s.r}"/>
+            </div>
+            <div class="ainp-wrap">
+              <div class="ainp-lbl">RIR</div>
+              <div class="rir-display" onclick="toggleRirSelector()">
+                <div class="rir-val" id="rir-display-val">${rirLabel}</div>
+                <div class="rir-tap-hint">▾</div>
+              </div>
+              <input type="hidden" id="inp-rir" value="${s.rir}"/>
+            </div>
+          </div>
+          <div class="rir-selector" id="rir-selector">${bubbles}</div>
+          <div style="text-align:center;margin-top:6px;"><span class="set-type-badge">סוג הסט: סט רגיל</span></div>
+        </div>`;
     } else {
-      div.innerHTML=`<div class="set-bubble ${isDone?'done-b':''}">${isDone?'✓':si+1}</div><div class="set-vals" style="margin-right:14px;"><div class="set-field"><div class="set-num">${isDone&&s.w?s.w:'—'}</div><div class="set-unit">ק״ג</div></div><div class="set-divider"></div><div class="set-field"><div class="set-num">${isDone&&s.r?s.r:'—'}</div><div class="set-unit">חזרות</div></div></div>`;
+      const wShow=isDone&&s.w?s.w:'—';
+      const rShow=isDone&&s.r?s.r:'—';
+      const rirShow=isDone&&s.rir!==''?s.rir:'—';
+      div.innerHTML=`
+        <div class="set-bubble ${isDone?'done-b':''}">${isDone?'✓':si+1}</div>
+        <div class="set-vals" style="margin-right:14px;">
+          <div class="set-field"><div class="set-num">${wShow}</div><div class="set-unit">ק״ג</div></div>
+          <div class="set-divider"></div>
+          <div class="set-field"><div class="set-num">${rShow}</div><div class="set-unit">חזרות</div></div>
+          <div class="set-divider"></div>
+          <div class="set-field"><div class="set-num" style="font-size:18px;">${rirShow}</div><div class="set-unit">RIR</div></div>
+        </div>`;
       if(!isDone)div.onclick=()=>{curSetIdx=si;renderSets();}
     }
     area.appendChild(div);
@@ -432,9 +594,31 @@ function renderSets(){
   document.getElementById('finishSetBtn').textContent=curSetIdx>=2?'סיים תרגיל ✓':'סיים סט';
 }
 
+function toggleRirSelector(){
+  const sel=document.getElementById('rir-selector');
+  if(sel)sel.classList.toggle('open');
+}
+
+function selectRir(val){
+  saveCurrentInputs();
+  if(setData[curExIdx])setData[curExIdx][curSetIdx].rir=String(val);
+  document.getElementById('inp-rir').value=val;
+  document.getElementById('rir-display-val').textContent=val;
+  document.querySelectorAll('.rir-bubble').forEach((b,i)=>{
+    b.classList.toggle('selected',i===val);
+  });
+  setTimeout(()=>{
+    const sel=document.getElementById('rir-selector');if(sel)sel.classList.remove('open');
+    // הפעל טיימר אוטומטית
+    const exs=D.exercises[curWid]||[];
+    const nxt=curSetIdx<2?exs[curExIdx]:exs[curExIdx+1]||null;
+    startRestTimer(nxt);
+  },350);
+}
+
 function saveCurrentInputs(){
   const wi=document.getElementById('inp-w'),ri=document.getElementById('inp-r'),riri=document.getElementById('inp-rir');
-  if(wi&&setData[curExIdx])setData[curExIdx][curSetIdx]={w:wi.value,r:ri.value,rir:riri.value};
+  if(wi&&setData[curExIdx])setData[curExIdx][curSetIdx]={w:wi.value,r:ri.value,rir:riri?riri.value:setData[curExIdx][curSetIdx].rir||''};
 }
 
 function applyPOIfNeeded(exIdx){
@@ -489,18 +673,25 @@ function startRestTimer(nxt){
   stopRestTimer();restRemain=restTotal=120;
   document.getElementById('restNextLbl').textContent=nxt?'תרגיל הבא: '+nxt:'';
   document.getElementById('restOverlay').classList.add('show');
+  document.getElementById('setsArea').classList.add('rest-active-padding');
   updateRestDisp();
   restTimer=setInterval(()=>{restRemain--;updateRestDisp();if(restRemain<=5&&restRemain>0)beep(880,0.1,0.2);if(restRemain===0){beep(1046,0.3,0.3);stopRestTimer();}},1000);
 }
 function updateRestDisp(){
   const m=Math.floor(restRemain/60),s=restRemain%60;
+  const t=m+':'+(s<10?'0':'')+s;
+  const col=restRemain<=5?'#f4a0b5':'#fff';
+  const strokeCol=restRemain<=5?'#f4a0b5':'#c9849a';
   const el=document.getElementById('restDisp');
-  el.textContent=m+':'+(s<10?'0':'')+s;
-  el.className='rest-time'+(restRemain<=5?' alert':'');
-  document.getElementById('restRingC').style.strokeDashoffset=515*(1-restRemain/restTotal);
-  document.getElementById('restRingC').style.stroke=restRemain<=5?'#f4a0b5':'#c9849a';
+  if(el){el.textContent=t;el.setAttribute('fill',col);}
+  const ring=document.getElementById('restRingC');
+  if(ring){
+    const offset=427*(1-restRemain/restTotal);
+    ring.style.strokeDashoffset=offset;
+    ring.style.stroke=strokeCol;
+  }
 }
-function stopRestTimer(){if(restTimer){clearInterval(restTimer);restTimer=null;}document.getElementById('restOverlay').classList.remove('show');}
+function stopRestTimer(){if(restTimer){clearInterval(restTimer);restTimer=null;}document.getElementById('restOverlay').classList.remove('show');document.getElementById('setsArea').classList.remove('rest-active-padding');}
 function skipRest(){stopRestTimer();}
 
 function finishWorkout(){
@@ -514,16 +705,46 @@ function finishWorkout(){
   document.getElementById('finTime').textContent=timeStr;
   document.getElementById('finSets').textContent=totalSets;
   document.getElementById('finVol').textContent=totalVol>999?(totalVol/1000).toFixed(1)+'k':totalVol;
+
+  // get last week's log for comparison
+  const prevWk=getPrevWeekKey();
+  const prevLog=D.logs[prevWk+'_'+curWid];
+
   const fl=document.getElementById('finExList');fl.innerHTML='';
   exs.forEach((ex,ei)=>{
-    let totReps=0,vol=0;(setData[ei]||[]).forEach(st=>{totReps+=(parseInt(st.r)||0);vol+=(parseFloat(st.w)||0)*(parseFloat(st.r)||0);});
+    let totReps=0,vol=0;
+    (setData[ei]||[]).forEach(st=>{totReps+=(parseInt(st.r)||0);vol+=(parseFloat(st.w)||0)*(parseFloat(st.r)||0);});
+    // compare to prev week
+    const prevExVol=prevLog&&prevLog.exVols&&prevLog.exVols[ex]!=null?prevLog.exVols[ex]:null;
+    const prevExReps=prevLog&&prevLog.exReps&&prevLog.exReps[ex]!=null?prevLog.exReps[ex]:null;
+    const volDiff=prevExVol!=null?Math.round(vol-prevExVol):null;
+    const repsDiff=prevExReps!=null?totReps-prevExReps:null;
+    const volSign=volDiff!=null?(volDiff>=0?'+':'')+volDiff:'+'+Math.round(vol);
+    const repsSign=repsDiff!=null?(repsDiff>=0?'+':'')+repsDiff:'+'+totReps;
+    const volColor=volDiff!=null&&volDiff<0?'rgba(255,255,255,0.3)':'#a8d8a0';
+    const repsColor=repsDiff!=null&&repsDiff<0?'rgba(255,255,255,0.3)':'var(--pk-light)';
+
     const row=document.createElement('div');row.className='fin-ex-row';
-    row.innerHTML=`<span class="fin-ex-name">${ex}</span><div class="fin-ex-badges"><span class="fin-badge badge-reps">+${totReps} חזרות</span><span class="fin-badge badge-vol">${vol} נפח</span>${poApplied[ei]?`<span class="fin-badge badge-po">↑ ${D.baseWeights[ex]}ק״ג</span>`:''}</div>`;
+    row.innerHTML=`
+      <span class="fin-ex-name">${ex}</span>
+      <div class="fin-ex-badges">
+        <span class="fin-badge" style="background:rgba(201,132,154,0.12);color:${repsColor};">${repsSign} חזרות</span>
+        <span class="fin-badge" style="background:rgba(168,216,160,0.1);color:${volColor};">${volSign} נפח</span>
+        ${poApplied[ei]?`<span class="fin-badge badge-po">↑ ${D.baseWeights[ex]}ק״ג</span>`:''}
+      </div>`;
     fl.appendChild(row);
   });
-  if(poCount>0){const n=document.createElement('div');n.style.cssText='background:rgba(168,216,160,0.08);border:0.5px solid rgba(168,216,160,0.2);border-radius:12px;padding:12px;margin-top:14px;text-align:center;font-size:13px;color:#a8d8a0;';n.textContent='עדכנת '+poCount+' תרגיל'+(poCount>1?'ים':'')+' — המשקל יעלה שבוע הבא 💪';fl.appendChild(n);}
+
+  const poNote=document.getElementById('finPoNote');
+  if(poCount>0){
+    poNote.style.cssText='background:rgba(168,216,160,0.08);border:0.5px solid rgba(168,216,160,0.2);border-radius:12px;padding:12px;margin-top:14px;text-align:center;font-size:13px;color:#a8d8a0;';
+    poNote.textContent='עדכנת '+poCount+' תרגיל'+(poCount>1?'ים':'')+' — המשקל יעלה שבוע הבא 💪';
+  } else {poNote.style.cssText='';}
   const logK=lk(curWid);if(!D.logs[logK])D.logs[logK]={};
-  Object.assign(D.logs[logK],{finished:true,date:new Date().toLocaleDateString('he-IL'),workoutName:D.workouts.find(x=>x.id===curWid)?.name||curWid,wid:curWid,sets:totalSets,volume:totalVol,time:timeStr,weekKey:weekKey(),poCount});
+  // build exVols and exReps
+  const exVols={};const exReps={};
+  exs.forEach((ex,ei)=>{let v=0,r=0;(setData[ei]||[]).forEach(st=>{v+=(parseFloat(st.w)||0)*(parseFloat(st.r)||0);r+=(parseInt(st.r)||0);});exVols[ex]=Math.round(v);exReps[ex]=r;});
+  Object.assign(D.logs[logK],{finished:true,date:new Date().toLocaleDateString('he-IL'),workoutName:D.workouts.find(x=>x.id===curWid)?.name||curWid,wid:curWid,sets:totalSets,volume:totalVol,time:timeStr,weekKey:weekKey(),poCount,exVols,exReps});
   sv(D);showScreen('finish');
 }
 
@@ -583,8 +804,176 @@ function openWeightModal(){document.getElementById('wModal').classList.add('show
 function closeWeightModal(){document.getElementById('wModal').classList.remove('show');}
 function saveWeight(){const v=document.getElementById('wInput').value;if(!v)return;D.weight=parseFloat(v).toFixed(1);sv(D);closeWeightModal();renderHome();}
 
+
+// ---- MEASUREMENTS ----
+const MEAS_FIELDS = [
+  {id:'chest', label:'חזה'},
+  {id:'waist', label:'מותן'},
+  {id:'hips',  label:'ישבן'},
+  {id:'arm-r', label:'יד ימין'},
+  {id:'arm-l', label:'יד שמאל'},
+  {id:'leg-r', label:'רגל ימין'},
+  {id:'leg-l', label:'רגל שמאל'},
+];
+
+function openMeasModal(){
+  document.getElementById('measModal').classList.add('show');
+  MEAS_FIELDS.forEach(f=>{document.getElementById('mi-'+f.id).value='';});
+  // pre-fill today's date
+  const today=new Date();
+  const yyyy=today.getFullYear();
+  const mm=String(today.getMonth()+1).padStart(2,'0');
+  const dd=String(today.getDate()).padStart(2,'0');
+  document.getElementById('mi-date').value=`${yyyy}-${mm}-${dd}`;
+}
+function closeMeasModal(){document.getElementById('measModal').classList.remove('show');}
+
+function saveMeasurement(){
+  const dateInput=document.getElementById('mi-date').value;
+  const displayDate=dateInput?new Date(dateInput+'T12:00:00').toLocaleDateString('he-IL'):new Date().toLocaleDateString('he-IL');
+  const entry={date:displayDate,ts:dateInput?new Date(dateInput+'T12:00:00').getTime():Date.now(),vals:{}};
+  MEAS_FIELDS.forEach(f=>{
+    const v=document.getElementById('mi-'+f.id).value;
+    if(v)entry.vals[f.id]=parseFloat(v);
+  });
+  if(!Object.keys(entry.vals).length)return;
+  if(!D.measurements)D.measurements=[];
+  D.measurements.unshift(entry);
+  sv(D);closeMeasModal();renderMeasurements();
+}
+
+function renderMeasurements(){
+  if(!D.measurements)D.measurements=[];
+  const card=document.getElementById('measCardContent');
+  if(!card)return;
+  const latest=D.measurements[0]||null;
+  const prev=D.measurements[1]||null;
+
+  if(!latest){
+    card.innerHTML='<div style="text-align:center;padding:12px 0;font-size:13px;color:rgba(255,255,255,0.28);">לחצי להוסיף מדידה ראשונה</div>';
+    return;
+  }
+
+  // date line
+  let html=`<div style="font-size:11px;color:rgba(255,255,255,0.3);margin-bottom:12px;text-align:right;">מדידה אחרונה: ${latest.date}</div>`;
+
+  // mini grid 2 columns
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
+  MEAS_FIELDS.forEach(f=>{
+    const val=latest.vals[f.id]!=null?latest.vals[f.id]:null;
+    const prevVal=prev&&prev.vals[f.id]!=null?prev.vals[f.id]:null;
+    let delta='';
+    if(val!=null&&prevVal!=null){
+      const diff=parseFloat((val-prevVal).toFixed(1));
+      const col=diff>0?'#f4a0b5':diff<0?'#a8d8a0':'rgba(255,255,255,0.3)';
+      const sign=diff>0?'+':'';
+      delta=`<span style="font-size:10px;color:${col};margin-right:4px;">${sign}${diff}</span>`;
+    }
+    html+=`<div style="background:rgba(201,132,154,0.06);border:0.5px solid rgba(201,132,154,0.1);border-radius:12px;padding:10px 12px;">
+      <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:4px;">${f.label}</div>
+      <div style="display:flex;align-items:baseline;gap:3px;">
+        <span style="font-size:20px;font-weight:600;color:#fff;">${val!=null?val:'—'}</span>
+        ${val!=null?'<span style="font-size:11px;color:rgba(255,255,255,0.3);">ס״מ</span>':''}
+        ${delta}
+      </div>
+    </div>`;
+  });
+  html+='</div>';
+
+  // last entry comparison note
+  if(D.measurements.length>1){
+    html+=`<div style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:10px;text-align:right;">לחצי להוסיף מדידה חדשה · ${D.measurements.length} מדידות בסה״כ</div>`;
+  }
+
+  card.innerHTML=html;
+}
+
+
+// ---- MESOCYCLE ----
+// 7-week block: weeks 1-5 accumulation, week 6 peak, week 7 deload
+const MESO_WEEKS = [
+  {week:1, type:'accumulation', title:'שבוע 1 — כניסה לעומס', desc:'התחלה בנפח מינימלי. בני תנע.', rir:'RIR מומלץ: 3-4'},
+  {week:2, type:'accumulation', title:'שבוע 2 — בניית נפח',   desc:'הוספת עומס הדרגתית. שמרי על טכניקה.', rir:'RIR מומלץ: 3'},
+  {week:3, type:'accumulation', title:'שבוע 3 — האצה',        desc:'העצמת העומס. גופך מתאים את עצמו.', rir:'RIR מומלץ: 2-3'},
+  {week:4, type:'accumulation', title:'שבוע 4 — התקדמות',     desc:'לחצי קצת יותר. ה-PO עובד.', rir:'RIR מומלץ: 2'},
+  {week:5, type:'accumulation', title:'שבוע 5 — שיא ההצטברות', desc:'אימון קשה. תגיעי קרוב לכשל.', rir:'RIR מומלץ: 1-2'},
+  {week:6, type:'peak',         title:'שבוע 6 — שבוע פיק 🔥', desc:'עומס יתר מבוקר. הנפח הגבוה ביותר.', rir:'RIR מומלץ: 0-1'},
+  {week:7, type:'deload',       title:'שבוע 7 — דילואד 🌿',   desc:'הורדת נפח 50%. הגוף מתאושש ומתחזק.', rir:'RIR מומלץ: 4-5'},
+];
+
+function getMesoState(){
+  if(!D.meso)D.meso={startDate:null,currentWeek:1};
+  return D.meso;
+}
+
+function getMesoWeekNum(){
+  const m=getMesoState();
+  if(!m.startDate){
+    m.startDate=new Date().toISOString().slice(0,10);
+    sv(D);
+  }
+  const start=new Date(m.startDate);
+  const now=new Date();
+  const diffDays=Math.floor((now-start)/(1000*60*60*24));
+  const week=Math.min(Math.floor(diffDays/7)+1,7);
+  return week;
+}
+
+function renderMesoBanner(){
+  const banner=document.getElementById('mesoBanner');
+  if(!banner)return;
+  const weekNum=getMesoWeekNum();
+  const w=MESO_WEEKS[weekNum-1];
+  const dotClass=w.type==='peak'?'peak-dot':w.type==='deload'?'deload-dot':'';
+  const dots=MESO_WEEKS.map((_,i)=>{
+    const isDone=i+1<weekNum;
+    const isCur=i+1===weekNum;
+    const dc=i===5?'peak-dot':i===6?'deload-dot':'';
+    return `<div class="meso-dot ${dc} ${isDone?'done':''} ${isCur?'current':''}"></div>`;
+  }).join('');
+  banner.innerHTML=`
+    <div class="meso-banner ${w.type}">
+      <div class="meso-week-label">מחזור אימונים — שבוע ${weekNum}/7</div>
+      <div class="meso-week-title">${w.title}</div>
+      <div class="meso-week-desc">${w.desc}</div>
+      <div class="meso-progress">${dots}</div>
+      <div class="meso-rir-hint">${w.rir}</div>
+      <button class="meso-reset-btn" onclick="resetMeso()">אפס מחזור</button>
+    </div>`;
+}
+
+function resetMeso(){
+  D.meso={startDate:new Date().toISOString().slice(0,10),currentWeek:1};
+  sv(D);renderMesoBanner();
+}
+
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}
 renderHome();
 </script>
+
+<!-- MEASUREMENT INPUT MODAL -->
+<div class="modal-bg" id="measModal">
+  <div class="meas-modal-box">
+    <div class="meas-modal-ttl">מדידה חדשה</div>
+    <div class="meas-input-row">
+      <div class="meas-input-lbl">תאריך</div>
+      <div class="meas-input-field">
+        <input class="meas-inp" type="date" id="mi-date" style="width:140px;font-size:13px;"/>
+      </div>
+    </div>
+    <div class="meas-input-row"><div class="meas-input-lbl">חזה</div><div class="meas-input-field"><input class="meas-inp" type="number" step="0.1" id="mi-chest" placeholder="—"/><span class="meas-inp-unit">ס״מ</span></div></div>
+    <div class="meas-input-row"><div class="meas-input-lbl">מותן</div><div class="meas-input-field"><input class="meas-inp" type="number" step="0.1" id="mi-waist" placeholder="—"/><span class="meas-inp-unit">ס״מ</span></div></div>
+    <div class="meas-input-row"><div class="meas-input-lbl">ישבן</div><div class="meas-input-field"><input class="meas-inp" type="number" step="0.1" id="mi-hips" placeholder="—"/><span class="meas-inp-unit">ס״מ</span></div></div>
+    <div class="meas-input-row"><div class="meas-input-lbl">יד ימין</div><div class="meas-input-field"><input class="meas-inp" type="number" step="0.1" id="mi-arm-r" placeholder="—"/><span class="meas-inp-unit">ס״מ</span></div></div>
+    <div class="meas-input-row"><div class="meas-input-lbl">יד שמאל</div><div class="meas-input-field"><input class="meas-inp" type="number" step="0.1" id="mi-arm-l" placeholder="—"/><span class="meas-inp-unit">ס״מ</span></div></div>
+    <div class="meas-input-row"><div class="meas-input-lbl">רגל ימין</div><div class="meas-input-field"><input class="meas-inp" type="number" step="0.1" id="mi-leg-r" placeholder="—"/><span class="meas-inp-unit">ס״מ</span></div></div>
+    <div class="meas-input-row"><div class="meas-input-lbl">רגל שמאל</div><div class="meas-input-field"><input class="meas-inp" type="number" step="0.1" id="mi-leg-l" placeholder="—"/><span class="meas-inp-unit">ס״מ</span></div></div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="modal-cancel" onclick="closeMeasModal()">ביטול</button>
+      <button class="modal-ok" onclick="saveMeasurement()">שמור</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
