@@ -239,6 +239,22 @@ body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
 .meso-banner.peak .meso-rir-hint{background:rgba(232,100,80,0.12);color:#f4a090;}
 .meso-banner.deload .meso-rir-hint{background:rgba(168,216,160,0.12);color:#a8d8a0;}
 .meso-reset-btn{font-size:11px;color:rgba(255,255,255,0.2);background:none;border:none;cursor:pointer;font-family:inherit;margin-top:6px;display:block;}
+
+/* WORKOUT PREVIEW */
+.preview-screen-wrap{padding:52px 20px 24px;flex:1;direction:rtl;display:flex;flex-direction:column;}
+.preview-close{background:none;border:none;color:rgba(255,255,255,0.4);font-size:22px;cursor:pointer;padding:0;margin-bottom:20px;text-align:right;display:block;}
+.preview-tag{display:inline-block;font-size:11px;font-weight:500;padding:4px 12px;border-radius:20px;margin-bottom:10px;}
+.preview-tag.upper{background:rgba(201,132,154,0.2);color:var(--pk-light);}
+.preview-tag.lower{background:rgba(168,216,160,0.15);color:#a8d8a0;}
+.preview-title{font-size:26px;font-weight:600;color:#fff;margin-bottom:6px;}
+.preview-meta{font-size:13px;color:rgba(255,255,255,0.35);margin-bottom:24px;}
+.preview-ex-list{flex:1;margin-bottom:24px;}
+.preview-ex-item{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:0.5px solid rgba(255,255,255,0.07);direction:rtl;}
+.preview-ex-name{font-size:15px;color:#fff;}
+.preview-ex-meta{font-size:12px;color:rgba(255,255,255,0.35);}
+.preview-ex-weight{font-size:13px;color:var(--pk-light);font-weight:500;}
+.start-workout-btn{width:100%;padding:18px;background:var(--pk);border:none;border-radius:20px;font-size:18px;font-weight:600;color:#fff;cursor:pointer;font-family:inherit;}
+.start-workout-btn:active{background:var(--pk-dark);}
 </style>
 </head>
 <body>
@@ -277,7 +293,7 @@ body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(201,132,154,0.7)" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
     </div>
     <div class="hero-hi">היי</div>
-    <div class="hero-name" id="heroName">ג׳וואל</div>
+    <div class="hero-name" id="heroName">ג׳ואל</div>
   </div>
   <!-- MESOCYCLE BANNER -->
   <div id="mesoBanner"></div>
@@ -321,6 +337,18 @@ body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
     <button class="nb" onclick="showScreen('history')"><span class="ni">📋</span>היסטוריה</button>
     <button class="nb" onclick="showScreen('manage')"><span class="ni">⚙️</span>תרגילים</button>
     <button class="nb on"><span class="ni">🏠</span>בית</button>
+  </div>
+</div>
+
+<!-- WORKOUT PREVIEW -->
+<div class="screen" id="screen-preview">
+  <div class="preview-screen-wrap">
+    <button class="preview-close" onclick="showScreen('home')">✕</button>
+    <div class="preview-tag" id="previewTag"></div>
+    <div class="preview-title" id="previewTitle"></div>
+    <div class="preview-meta" id="previewMeta"></div>
+    <div class="preview-ex-list" id="previewExList"></div>
+    <button class="start-workout-btn" id="startWorkoutBtn" onclick="beginWorkout()">התחל אימון</button>
   </div>
 </div>
 
@@ -517,8 +545,36 @@ function renderHome(){
 }
 
 function startWorkout(wid){
-  curWid=wid;curExIdx=0;curSetIdx=0;setData={};workoutStart=Date.now();poApplied={};
+  // show preview first
+  curWid=wid;
+  const w=D.workouts.find(x=>x.id===wid);
   const exs=D.exercises[wid]||[];
+  const tag=document.getElementById('previewTag');
+  tag.textContent=w.type==='upper'?'פלג עליון':'פלג תחתון';
+  tag.className='preview-tag '+(w.type==='upper'?'upper':'lower');
+  document.getElementById('previewTitle').textContent=w.name;
+  document.getElementById('previewMeta').textContent=exs.length+' תרגילים · 3 סטים כל אחד';
+  const list=document.getElementById('previewExList');
+  list.innerHTML='';
+  exs.forEach((ex,i)=>{
+    const bw=D.baseWeights[ex];
+    const item=document.createElement('div');
+    item.className='preview-ex-item';
+    item.innerHTML=`
+      <div>
+        <div class="preview-ex-name">${ex}</div>
+        <div class="preview-ex-meta">3 סטים × 8-12 חזרות</div>
+      </div>
+      ${bw?`<div class="preview-ex-weight">${bw} ק״ג</div>`:'<div class="preview-ex-meta">משקל חדש</div>'}`;
+    list.appendChild(item);
+  });
+  showScreen('preview');
+}
+
+function beginWorkout(){
+  // actually start the workout and timer
+  curExIdx=0;curSetIdx=0;setData={};workoutStart=Date.now();poApplied={};
+  const exs=D.exercises[curWid]||[];
   exs.forEach((_,ei)=>{setData[ei]=[{w:'',r:'',rir:''},{w:'',r:'',rir:''},{w:'',r:'',rir:''}];});
   renderExercise();showScreen('exercise');
 }
@@ -892,13 +948,13 @@ function renderMeasurements(){
 // ---- MESOCYCLE ----
 // 7-week block: weeks 1-5 accumulation, week 6 peak, week 7 deload
 const MESO_WEEKS = [
-  {week:1, type:'accumulation', title:'שבוע 1 — כניסה לעומס', desc:'התחלה בנפח מינימלי. בני תנע.', rir:'RIR מומלץ: 3-4'},
-  {week:2, type:'accumulation', title:'שבוע 2 — בניית נפח',   desc:'הוספת עומס הדרגתית. שמרי על טכניקה.', rir:'RIR מומלץ: 3'},
-  {week:3, type:'accumulation', title:'שבוע 3 — האצה',        desc:'העצמת העומס. גופך מתאים את עצמו.', rir:'RIR מומלץ: 2-3'},
-  {week:4, type:'accumulation', title:'שבוע 4 — התקדמות',     desc:'לחצי קצת יותר. ה-PO עובד.', rir:'RIR מומלץ: 2'},
-  {week:5, type:'accumulation', title:'שבוע 5 — שיא ההצטברות', desc:'אימון קשה. תגיעי קרוב לכשל.', rir:'RIR מומלץ: 1-2'},
-  {week:6, type:'peak',         title:'שבוע 6 — שבוע פיק 🔥', desc:'עומס יתר מבוקר. הנפח הגבוה ביותר.', rir:'RIR מומלץ: 0-1'},
-  {week:7, type:'deload',       title:'שבוע 7 — דילואד 🌿',   desc:'הורדת נפח 50%. הגוף מתאושש ומתחזק.', rir:'RIR מומלץ: 4-5'},
+  {week:1, type:'accumulation', title:'שבוע 1 — כניסה לעומס', desc:'התחלה בנפח מינימלי. בני תנע.', rir:'RIR מומלץ: 2'},
+  {week:2, type:'accumulation', title:'שבוע 2 — בניית נפח',   desc:'הוספת עומס הדרגתית. שמרי על טכניקה.', rir:'RIR מומלץ: 2'},
+  {week:3, type:'accumulation', title:'שבוע 3 — האצה',        desc:'העצמת העומס. גופך מתאים את עצמו.', rir:'RIR מומלץ: 1-2'},
+  {week:4, type:'accumulation', title:'שבוע 4 — התקדמות',     desc:'לחצי קצת יותר. ה-PO עובד.', rir:'RIR מומלץ: 1'},
+  {week:5, type:'accumulation', title:'שבוע 5 — שיא ההצטברות', desc:'אימון קשה. תגיעי קרוב לכשל.', rir:'RIR מומלץ: 0-1'},
+  {week:6, type:'peak',         title:'שבוע 6 — שבוע פיק 🔥', desc:'עומס יתר מבוקר. הנפח הגבוה ביותר.', rir:'RIR מומלץ: 0'},
+  {week:7, type:'deload',       title:'שבוע 7 — דילואד 🌿',   desc:'הורדת נפח 50%. הגוף מתאושש ומתחזק.', rir:'RIR מומלץ: 2-3'},
 ];
 
 function getMesoState(){
