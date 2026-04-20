@@ -430,7 +430,8 @@ body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
 <div class="screen" id="screen-history">
   <div class="hist-top"><div class="hist-ttl">התקדמות</div></div>
   <div class="tab-row">
-    <button class="tab-btn on" id="tab-chart" onclick="switchHistTab('chart')">גרף</button>
+    <button class="tab-btn on" id="tab-chart" onclick="switchHistTab('chart')">נפח</button>
+    <button class="tab-btn" id="tab-weight" onclick="switchHistTab('weight')">משקל</button>
     <button class="tab-btn" id="tab-log" onclick="switchHistTab('log')">יומן</button>
   </div>
   <div id="histChartTab" style="flex:1;overflow-y:auto;">
@@ -455,6 +456,19 @@ body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
   </div>
   <div id="histLogTab" style="display:none;flex:1;">
     <div class="hist-list-wrap" id="histList"></div>
+  </div>
+  <div id="histWeightTab" style="display:none;flex:1;overflow-y:auto;">
+    <div class="chart-wrap">
+      <div class="chart-top">
+        <div><div class="chart-ttl">משקל גוף</div><div class="chart-pct-sub">לאורך זמן</div></div>
+        <div style="text-align:left;"><div class="chart-pct" id="weightChartPct">—</div><div class="chart-pct-sub">שינוי כולל</div></div>
+      </div>
+      <div class="chart-area"><canvas id="weightChart" height="150"></canvas></div>
+    </div>
+    <div style="margin:0 14px 14px;direction:rtl;">
+      <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.4);margin-bottom:10px;">רישומי שקילות</div>
+      <div id="weightHistoryFull"></div>
+    </div>
   </div>
   <div class="bnav">
     <button class="nb on"><span class="ni">📋</span>היסטוריה</button>
@@ -821,9 +835,13 @@ function switchHistTab(tab){
   curHistTab=tab;
   document.getElementById('histChartTab').style.display=tab==='chart'?'block':'none';
   document.getElementById('histLogTab').style.display=tab==='log'?'flex':'none';
+  document.getElementById('histWeightTab').style.display=tab==='weight'?'flex':'none';
   document.getElementById('tab-chart').className='tab-btn'+(tab==='chart'?' on':'');
   document.getElementById('tab-log').className='tab-btn'+(tab==='log'?' on':'');
-  if(tab==='chart')renderChart(curChartFilter);else renderLogList();
+  document.getElementById('tab-weight').className='tab-btn'+(tab==='weight'?' on':'');
+  if(tab==='chart')renderChart(curChartFilter);
+  else if(tab==='log')renderLogList();
+  else if(tab==='weight')renderWeightChart();
 }
 
 function setChartFilter(filter,btn){curChartFilter=filter;document.querySelectorAll('.ctab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderChart(filter);}
@@ -855,7 +873,7 @@ function renderLogList(){
   keys.forEach(k=>{const lg=D.logs[k];const item=document.createElement('div');item.className='hitem';item.innerHTML=`<div class="hitem-top"><span class="hitem-name">${lg.workoutName||k}</span><span class="hitem-date">${lg.date||''}</span></div><div class="hitem-stats"><span class="hitem-stat">⏱ <span>${lg.time||'—'}</span></span><span class="hitem-stat">🏋️ <span>${lg.sets||0}</span> סטים</span><span class="hitem-stat">⚖️ <span>${lg.volume>999?(lg.volume/1000).toFixed(1)+'k':lg.volume||0}</span></span>${lg.poCount>0?`<span class="hitem-stat">↑ <span>${lg.poCount} PO</span></span>`:''}</div>`;c.appendChild(item);});
 }
 
-function renderHistory(){if(curHistTab==='chart')renderChart(curChartFilter);else renderLogList();}
+function renderHistory(){if(curHistTab==='chart')renderChart(curChartFilter);else if(curHistTab==='weight')renderWeightChart();else renderLogList();}
 
 function renderManage(){
   const list=document.getElementById('manageList');list.innerHTML='';
@@ -1070,6 +1088,64 @@ function renderMesoBanner(){
 function resetMeso(){
   D.meso={startDate:new Date().toISOString().slice(0,10),currentWeek:1};
   sv(D);renderMesoBanner();
+}
+
+
+function renderWeightChart(){
+  if(!D.weightHistory||!D.weightHistory.length){
+    const c=document.getElementById('weightChart');
+    if(c){const ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle='rgba(255,255,255,0.18)';ctx.font='14px sans-serif';ctx.textAlign='center';ctx.fillText('עוד אין שקילות',c.width/2,80);}
+    document.getElementById('weightChartPct').textContent='—';
+    document.getElementById('weightHistoryFull').innerHTML='<div class="hist-empty">עוד אין שקילות</div>';
+    return;
+  }
+
+  // sort by date ascending for chart
+  const sorted=[...D.weightHistory].sort((a,b)=>a.ts-b.ts);
+  const labels=sorted.map(e=>e.date);
+  const values=sorted.map(e=>parseFloat(e.w));
+
+  // pct change
+  if(values.length>=2){
+    const diff=parseFloat((values[values.length-1]-values[0]).toFixed(1));
+    const sign=diff>0?'+':'';
+    const col=diff<0?'#a8d8a0':'#f8a4c0';
+    document.getElementById('weightChartPct').textContent=sign+diff+' ק״ג';
+    document.getElementById('weightChartPct').style.color=col;
+  }
+
+  const canvas=document.getElementById('weightChart');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  if(window._weightChart){window._weightChart.destroy();}
+
+  const grad=ctx.createLinearGradient(0,0,0,150);
+  grad.addColorStop(0,'rgba(248,164,192,0.3)');
+  grad.addColorStop(1,'rgba(248,164,192,0)');
+
+  window._weightChart=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[{data:values,borderColor:'#f8a4c0',borderWidth:2.5,backgroundColor:grad,fill:true,tension:0.4,pointBackgroundColor:'#f8a4c0',pointRadius:5,pointHoverRadius:7}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a1214',borderColor:'rgba(248,164,192,0.25)',borderWidth:1,titleColor:'#fff',bodyColor:'#f8a4c0',callbacks:{label:c=>c.parsed.y+' ק״ג'}}},
+      scales:{
+        x:{grid:{color:'rgba(248,164,192,0.06)'},ticks:{color:'rgba(255,255,255,0.3)',font:{size:11},maxTicksLimit:6}},
+        y:{grid:{color:'rgba(248,164,192,0.06)'},ticks:{color:'rgba(255,255,255,0.3)',font:{size:11},callback:v=>v+' ק״ג'}}
+      }
+    }
+  });
+
+  // full history list
+  const list=document.getElementById('weightHistoryFull');
+  list.innerHTML=D.weightHistory.map((e,i)=>{
+    const prev=D.weightHistory[i+1];
+    const diff=prev?parseFloat((parseFloat(e.w)-parseFloat(prev.w)).toFixed(1)):null;
+    const diffHtml=diff!=null?`<span style="font-size:12px;color:${diff<0?'#a8d8a0':diff>0?'#f8a4c0':'rgba(255,255,255,0.3)'};">${diff>0?'+':''}${diff} ק״ג</span>`:'';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;background:rgba(248,164,192,0.05);border:0.5px solid rgba(248,164,192,0.12);border-radius:12px;margin-bottom:8px;">
+      <span style="font-size:13px;color:rgba(255,255,255,0.4);">${e.date}</span>
+      <div style="display:flex;align-items:center;gap:10px;">${diffHtml}<span style="font-size:17px;font-weight:600;color:#fff;">${e.w} ק״ג</span></div>
+    </div>`;
+  }).join('');
 }
 
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}
