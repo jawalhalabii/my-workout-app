@@ -8,8 +8,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="אימונים"/>
-<link rel="manifest" href="manifest.json"/>
-<link rel="apple-touch-icon" href="icon.png"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#fff;min-height:100vh;max-width:430px;margin:0 auto;}
@@ -1148,7 +1146,7 @@ function renderWeightChart(){
   }).join('');
 }
 
-if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}
+// PWA disabled
 renderHome();
 </script>
 
