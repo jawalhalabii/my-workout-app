@@ -486,6 +486,8 @@ body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
   <div class="modal-box">
     <div class="modal-ttl">עדכון משקל גוף</div>
     <input type="number" id="wInput" class="modal-input" placeholder="משקל בק״ג..." step="0.1"/>
+    <input type="date" id="wDate" style="width:100%;background:rgba(255,255,255,0.05);border:0.5px solid rgba(248,164,192,0.2);border-radius:12px;padding:10px;font-size:15px;color:#fff;outline:none;text-align:center;font-family:inherit;margin-bottom:12px;direction:ltr;"/>
+    <div id="weightHistoryList" style="max-height:180px;overflow-y:auto;margin-bottom:12px;direction:rtl;"></div>
     <div class="modal-btns">
       <button class="modal-cancel" onclick="closeWeightModal()">ביטול</button>
       <button class="modal-ok" onclick="saveWeight()">שמור</button>
@@ -893,9 +895,39 @@ function moveEx(wid,idx,dir){
 }
 function addExercise(){const name=document.getElementById('newExName').value.trim(),wid=document.getElementById('newExWorkout').value;if(!name||!wid)return;if(!D.exercises[wid])D.exercises[wid]=[];D.exercises[wid].push(name);sv(D);document.getElementById('newExName').value='';renderManage();}
 function delEx(wid,idx){D.exercises[wid].splice(idx,1);sv(D);renderManage();}
-function openWeightModal(){document.getElementById('wModal').classList.add('show');if(D.weight)document.getElementById('wInput').value=D.weight;}
+function openWeightModal(){
+  document.getElementById('wModal').classList.add('show');
+  const today=new Date();
+  const yyyy=today.getFullYear(),mm=String(today.getMonth()+1).padStart(2,'0'),dd=String(today.getDate()).padStart(2,'0');
+  document.getElementById('wDate').value=`${yyyy}-${mm}-${dd}`;
+  document.getElementById('wInput').value='';
+  renderWeightHistory();
+}
 function closeWeightModal(){document.getElementById('wModal').classList.remove('show');}
-function saveWeight(){const v=document.getElementById('wInput').value;if(!v)return;D.weight=parseFloat(v).toFixed(1);sv(D);closeWeightModal();renderHome();}
+function saveWeight(){
+  const v=document.getElementById('wInput').value;if(!v)return;
+  const dateInput=document.getElementById('wDate').value;
+  const displayDate=dateInput?new Date(dateInput+'T12:00:00').toLocaleDateString('he-IL'):new Date().toLocaleDateString('he-IL');
+  if(!D.weightHistory)D.weightHistory=[];
+  D.weightHistory.unshift({w:parseFloat(v).toFixed(1),date:displayDate,ts:Date.now()});
+  D.weight=parseFloat(v).toFixed(1);
+  sv(D);closeWeightModal();renderHome();
+}
+function renderWeightHistory(){
+  if(!D.weightHistory)D.weightHistory=[];
+  const list=document.getElementById('weightHistoryList');if(!list)return;
+  if(!D.weightHistory.length){list.innerHTML='<div style="font-size:12px;color:rgba(255,255,255,0.25);text-align:center;padding:8px 0;">עוד אין היסטוריה</div>';return;}
+  list.innerHTML='<div style="font-size:11px;color:rgba(255,255,255,0.3);margin-bottom:6px;">היסטוריה</div>'+
+    D.weightHistory.slice(0,8).map((e,i)=>{
+      const prev=D.weightHistory[i+1];
+      const diff=prev?parseFloat((parseFloat(e.w)-parseFloat(prev.w)).toFixed(1)):null;
+      const diffHtml=diff!=null?`<span style="font-size:11px;color:${diff<0?'#a8d8a0':diff>0?'#f8a4c0':'rgba(255,255,255,0.3)'};margin-right:6px;">${diff>0?'+':''}${diff}</span>`:'';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);">
+        <span style="font-size:12px;color:rgba(255,255,255,0.35);">${e.date}</span>
+        <div style="display:flex;align-items:center;">${diffHtml}<span style="font-size:14px;font-weight:500;color:#fff;">${e.w} ק״ג</span></div>
+      </div>`;
+    }).join('');
+}
 
 
 // ---- MEASUREMENTS ----
