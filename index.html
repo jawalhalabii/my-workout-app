@@ -458,14 +458,19 @@ body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
   <div id="histWeightTab" style="display:none;flex:1;overflow-y:auto;">
     <div class="chart-wrap">
       <div class="chart-top">
-        <div><div class="chart-ttl">משקל גוף</div><div class="chart-pct-sub">לאורך זמן</div></div>
+        <div><div class="chart-ttl">מגמת משקל</div><div class="chart-pct-sub">לאורך זמן</div></div>
         <div style="text-align:left;"><div class="chart-pct" id="weightChartPct">—</div><div class="chart-pct-sub">שינוי כולל</div></div>
       </div>
-      <div class="chart-area"><canvas id="weightChart" height="150"></canvas></div>
-    </div>
-    <div style="margin:0 14px 14px;direction:rtl;">
-      <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.4);margin-bottom:10px;">רישומי שקילות</div>
-      <div id="weightHistoryFull"></div>
+      <div class="chart-tabs">
+        <button class="ctab on" id="wtab-chart" onclick="switchWeightSubTab('chart')">גרף</button>
+        <button class="ctab" id="wtab-log" onclick="switchWeightSubTab('log')">משקל</button>
+      </div>
+      <div id="wSubChart">
+        <div class="chart-area"><canvas id="weightChart" height="140"></canvas></div>
+      </div>
+      <div id="wSubLog" style="display:none;">
+        <div id="weightHistoryFull"></div>
+      </div>
     </div>
   </div>
   <div class="bnav">
@@ -1138,12 +1143,22 @@ function renderWeightChart(){
   list.innerHTML=D.weightHistory.map((e,i)=>{
     const prev=D.weightHistory[i+1];
     const diff=prev?parseFloat((parseFloat(e.w)-parseFloat(prev.w)).toFixed(1)):null;
-    const diffHtml=diff!=null?`<span style="font-size:12px;color:${diff<0?'#a8d8a0':diff>0?'#f8a4c0':'rgba(255,255,255,0.3)'};">${diff>0?'+':''}${diff} ק״ג</span>`:'';
-    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;background:rgba(248,164,192,0.05);border:0.5px solid rgba(248,164,192,0.12);border-radius:12px;margin-bottom:8px;">
-      <span style="font-size:13px;color:rgba(255,255,255,0.4);">${e.date}</span>
-      <div style="display:flex;align-items:center;gap:10px;">${diffHtml}<span style="font-size:17px;font-weight:600;color:#fff;">${e.w} ק״ג</span></div>
+    const col=diff!=null?(diff<0?'#a8d8a0':diff>0?'#f8a4c0':'rgba(255,255,255,0.3)'):'';
+    const diffHtml=diff!=null?`<span style="font-size:12px;color:${col};margin-left:8px;">${diff>0?'+':''}${diff} ק״ג</span>`:'';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);">
+      <span style="font-size:13px;color:rgba(255,255,255,0.35);">${e.date}</span>
+      <div style="display:flex;align-items:center;gap:14px;">${diffHtml}<span style="font-size:18px;font-weight:600;color:#fff;">${e.w} ק״ג</span></div>
     </div>`;
   }).join('');
+}
+
+
+function switchWeightSubTab(sub){
+  document.getElementById('wSubChart').style.display=sub==='chart'?'block':'none';
+  document.getElementById('wSubLog').style.display=sub==='log'?'block':'none';
+  document.getElementById('wtab-chart').className='ctab'+(sub==='chart'?' on':'');
+  document.getElementById('wtab-log').className='ctab'+(sub==='log'?' on':'');
+  if(sub==='chart')renderWeightChart();
 }
 
 // PWA disabled
