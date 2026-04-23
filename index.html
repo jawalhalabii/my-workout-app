@@ -95,7 +95,7 @@ body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
 .rest-overlay.show{display:flex;}
 /* big ring in center of screen */
 .rest-ring-center{pointer-events:all;align-self:center;margin-bottom:8px;}
-.rest-ring-center svg{transform:rotate(-90deg);}
+.rest-ring-center svg{transform:none;}
 /* bottom info bar */
 .rest-bottom-bar{display:flex;align-items:center;gap:12px;background:#1a1014;border-top:0.5px solid rgba(248,164,192,0.25);padding:12px 20px 32px;pointer-events:all;width:100%;}
 .rest-bar-info{flex:1;text-align:right;}
@@ -264,6 +264,9 @@ body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
 .move-btn{background:none;border:0.5px solid rgba(248,164,192,0.2);border-radius:8px;color:rgba(248,164,192,0.7);font-size:14px;cursor:pointer;padding:3px 8px;font-family:inherit;}
 .move-btn:hover{background:rgba(248,164,192,0.1);}
 .move-btn:disabled{opacity:0.2;cursor:not-allowed;}
+
+.pill.active-pill{background:rgba(248,164,192,0.18);border:1.5px solid #f8a4c0;}
+.pill-check.active-ck{background:rgba(248,164,192,0.3);border-color:#f8a4c0;color:#f8a4c0;}
 </style>
 </head>
 <body>
@@ -365,7 +368,7 @@ body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
 <div class="screen" id="screen-exercise">
   <div class="ex-topbar">
     <div class="ex-nav-row">
-      <button class="ex-menu-btn" onclick="showScreen('home')">✕</button>
+      <button class="ex-menu-btn" onclick="confirmExitWorkout()">✕</button>
       <div class="ex-counter" id="exCounter">תרגיל 1/3</div>
       <button class="ex-nav-btn" onclick="goNextExercise()">›</button>
     </div>
@@ -533,7 +536,7 @@ const DEF={
 function ld(){try{const r=localStorage.getItem(SK);return r?JSON.parse(r):JSON.parse(JSON.stringify(DEF));}catch(e){return JSON.parse(JSON.stringify(DEF));}}
 function sv(d){try{localStorage.setItem(SK,JSON.stringify(d));}catch(e){}}
 let D=ld();
-let curWid=null,curExIdx=0,curSetIdx=0,setData={},workoutStart=null;
+let curWid=null,curExIdx=0,curSetIdx=0,setData={},workoutStart=null,_activeWid=null;
 let restTimer=null,restRemain=120,restTotal=120;
 let audioCtx=null,chartInstance=null,curChartFilter='all',curHistTab='chart';
 let poApplied={};
@@ -561,8 +564,10 @@ function renderHome(){
   D.workouts.forEach((w,i)=>{
     const fin=D.logs[lk(w.id)]&&D.logs[lk(w.id)].finished;
     if(fin)done++;
-    const p=document.createElement('div');p.className='pill'+(fin?' done':'');
-    p.innerHTML=`<div class="pill-check ${fin?'ck':''}">${fin?'✓':''}</div><div class="pill-num">${i+1}</div><div class="pill-lbl">אימון</div>`;
+    const isActive=w.id===_activeWid&&workoutStart;
+    const p=document.createElement('div');
+    p.className='pill'+(fin?' done':isActive?' active-pill':'');
+    p.innerHTML=`<div class="pill-check ${fin?'ck':isActive?'active-ck':''}">${fin?'✓':isActive?'▶':''}</div><div class="pill-num">${i+1}</div><div class="pill-lbl">${isActive?'ממשיך':'אימון'}</div>`;
     p.onclick=()=>startWorkout(w.id);c.appendChild(p);
   });
   const pct=Math.round((done/4)*100);
@@ -575,6 +580,10 @@ function renderHome(){
 }
 
 function startWorkout(wid){
+  // if clicking same active workout - go straight back in
+  if(wid===_activeWid&&workoutStart&&Object.keys(setData).length>0){
+    renderExercise();showScreen('exercise');return;
+  }
   // show preview first
   curWid=wid;
   const w=D.workouts.find(x=>x.id===wid);
@@ -601,9 +610,21 @@ function startWorkout(wid){
   showScreen('preview');
 }
 
+
+function confirmExitWorkout(){
+  saveCurrentInputs();
+  // just go home - workout stays active in memory
+  showScreen('home');
+}
+
 function beginWorkout(){
-  // actually start the workout and timer
-  curExIdx=0;curSetIdx=0;setData={};workoutStart=Date.now();poApplied={};
+  // if same workout already running in memory - just resume
+  if(curWid&&workoutStart&&Object.keys(setData).length>0&&curWid===_activeWid){
+    renderExercise();showScreen('exercise');return;
+  }
+  // new workout
+  poApplied={};curExIdx=0;curSetIdx=0;setData={};workoutStart=Date.now();
+  _activeWid=curWid;
   const exs=D.exercises[curWid]||[];
   exs.forEach((_,ei)=>{setData[ei]=[{w:'',r:'',rir:''},{w:'',r:'',rir:''},{w:'',r:'',rir:''}];});
   renderExercise();showScreen('exercise');
@@ -641,12 +662,12 @@ function renderSets(){
           <div class="active-inputs">
             <div class="ainp-wrap">
               <div class="ainp-lbl">משקל (ק״ג)</div>
-              <input class="ainp" type="number" min="0" step="0.5" placeholder="${bw||'0'}" id="inp-w" value="${s.w||bw||''}"/>
+              <input class="ainp" type="number" min="0" step="0.5" placeholder="${bw||'0'}" id="inp-w" value="${s.w||bw||''}" inputmode="decimal"/>
               ${bw?`<div class="prev-val">מומלץ: ${bw}</div>`:''}
             </div>
             <div class="ainp-wrap">
               <div class="ainp-lbl">חזרות</div>
-              <input class="ainp" type="number" min="1" placeholder="0" id="inp-r" value="${s.r}"/>
+              <input class="ainp" type="number" min="1" placeholder="0" id="inp-r" value="${s.r}" inputmode="numeric"/>
             </div>
             <div class="ainp-wrap">
               <div class="ainp-lbl">RIR</div>
@@ -831,7 +852,7 @@ function finishWorkout(){
   const exVols={};const exReps={};
   exs.forEach((ex,ei)=>{let v=0,r=0;(setData[ei]||[]).forEach(st=>{v+=(parseFloat(st.w)||0)*(parseFloat(st.r)||0);r+=(parseInt(st.r)||0);});exVols[ex]=Math.round(v);exReps[ex]=r;});
   Object.assign(D.logs[logK],{finished:true,date:new Date().toLocaleDateString('he-IL'),workoutName:D.workouts.find(x=>x.id===curWid)?.name||curWid,wid:curWid,sets:totalSets,volume:totalVol,time:timeStr,weekKey:weekKey(),poCount,exVols,exReps});
-  sv(D);showScreen('finish');
+  _activeWid=null;sv(D);showScreen('finish');
 }
 
 function switchHistTab(tab){
