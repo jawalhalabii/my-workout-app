@@ -423,7 +423,7 @@ body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
     <div id="finPoNote"></div>
 
     <!-- close button -->
-    <button class="share-btn" onclick="showScreen('home')" style="margin-top:20px;">סגור</button>
+    <button class="share-btn" onclick="showScreen('home');renderHome();" style="margin-top:20px;">סגור</button>
   </div>
 </div>
 
@@ -562,7 +562,9 @@ function renderHome(){
   const c=document.getElementById('homePills');c.innerHTML='';
   let done=0;
   D.workouts.forEach((w,i)=>{
-    const fin=D.logs[lk(w.id)]&&D.logs[lk(w.id)].finished;
+    // check current week first, then any completion ever
+    const thisWeekLog=D.logs[lk(w.id)];
+    const fin=thisWeekLog&&thisWeekLog.finished;
     if(fin)done++;
     const isActive=w.id===_activeWid&&workoutStart;
     const p=document.createElement('div');
@@ -852,7 +854,7 @@ function finishWorkout(){
   const exVols={};const exReps={};
   exs.forEach((ex,ei)=>{let v=0,r=0;(setData[ei]||[]).forEach(st=>{v+=(parseFloat(st.w)||0)*(parseFloat(st.r)||0);r+=(parseInt(st.r)||0);});exVols[ex]=Math.round(v);exReps[ex]=r;});
   Object.assign(D.logs[logK],{finished:true,date:new Date().toLocaleDateString('he-IL'),workoutName:D.workouts.find(x=>x.id===curWid)?.name||curWid,wid:curWid,sets:totalSets,volume:totalVol,time:timeStr,weekKey:weekKey(),poCount,exVols,exReps});
-  _activeWid=null;sv(D);showScreen('finish');
+  _activeWid=null;sv(D);showScreen('finish');renderHome();
 }
 
 function switchHistTab(tab){
