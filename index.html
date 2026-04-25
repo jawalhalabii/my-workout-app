@@ -91,13 +91,15 @@ body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
 .finish-set-btn:active{background:var(--pk-dark);}
 
 /* REST TIMER */
-.rest-overlay{display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:200;flex-direction:column;pointer-events:none;}
-.rest-overlay.show{display:flex;}
+.rest-overlay{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:200;pointer-events:none;}
+.rest-overlay.show{display:block;}
 /* big ring in center of screen */
-.rest-ring-center{pointer-events:all;align-self:center;margin-bottom:8px;}
-.rest-ring-center svg{transform:none;}
+.rest-ring-center{display:none;}
+.rest-ring-inline{display:none;justify-content:center;padding:12px 0;}
+.rest-ring-inline.show{display:flex;}
+
 /* bottom info bar */
-.rest-bottom-bar{display:flex;align-items:center;gap:12px;background:#1a1014;border-top:0.5px solid rgba(248,164,192,0.25);padding:12px 20px 32px;pointer-events:all;width:100%;}
+.rest-bottom-bar{display:flex;align-items:center;gap:12px;background:#1a1014;border-top:0.5px solid rgba(248,164,192,0.25);padding:10px 16px;pointer-events:all;width:100%;}
 .rest-bar-info{flex:1;text-align:right;}
 .rest-title{font-size:12px;color:rgba(255,255,255,0.35);margin-bottom:2px;}
 .rest-next-lbl{font-size:14px;color:var(--pk-light);font-weight:500;}
@@ -272,26 +274,14 @@ body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
 <body>
 
 <!-- REST TIMER -->
+<!-- REST BOTTOM BAR (fixed) -->
 <div class="rest-overlay" id="restOverlay">
-  <div class="rest-ring-center">
-    <svg width="160" height="160" viewBox="0 0 160 160">
-      <circle cx="80" cy="80" r="68" fill="rgba(15,13,14,0.82)" stroke="rgba(248,164,192,0.15)" stroke-width="7"/>
-      <g transform="rotate(-90 80 80)">
-        <circle id="restRingC" cx="80" cy="80" r="68" fill="none" stroke="#f8a4c0" stroke-width="7"
-          stroke-dasharray="427" stroke-dashoffset="0" stroke-linecap="round"
-          style="transition:stroke-dashoffset .9s linear,stroke .3s;"/>
-      </g>
-      <text id="restDisp" x="80" y="80" text-anchor="middle" dominant-baseline="central"
-        font-size="36" font-weight="300" letter-spacing="1" fill="#fff"
-        font-family="-apple-system,BlinkMacSystemFont,sans-serif">2:00</text>
-    </svg>
-  </div>
   <div class="rest-bottom-bar">
-    <button class="rest-skip" onclick="skipRest()">דלג</button>
     <div class="rest-bar-info">
       <div class="rest-title">זמן מנוחה</div>
       <div class="rest-next-lbl" id="restNextLbl">—</div>
     </div>
+    <button class="rest-skip" onclick="skipRest()">דלג</button>
   </div>
 </div>
 
@@ -370,7 +360,10 @@ body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
     <div class="ex-nav-row">
       <button class="ex-menu-btn" onclick="confirmExitWorkout()">✕</button>
       <div class="ex-counter" id="exCounter">תרגיל 1/3</div>
-      <button class="ex-nav-btn" onclick="goNextExercise()">›</button>
+      <div style="display:flex;gap:2px;">
+        <button class="ex-nav-btn" id="exPrevBtn" onclick="goPrevExercise()" style="opacity:0.4;">‹</button>
+        <button class="ex-nav-btn" id="exNextBtn" onclick="goNextExercise()">›</button>
+      </div>
     </div>
     <div class="ex-name" id="exName"></div>
     <div class="po-hint" id="poHint"></div>
@@ -379,6 +372,20 @@ body{background:#0f0d0e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
   <div class="next-ex-preview" id="nextExPreview">
     <div class="nep-lbl">התרגיל הבא</div>
     <div class="nep-name" id="nextExName"></div>
+  </div>
+  <!-- inline rest ring -->
+  <div class="rest-ring-inline" id="restRingInline">
+    <svg width="160" height="160" viewBox="0 0 160 160">
+      <circle cx="80" cy="80" r="68" fill="rgba(13,15,18,0.95)" stroke="rgba(248,164,192,0.12)" stroke-width="7"/>
+      <g transform="rotate(-90 80 80)">
+        <circle id="restRingC" cx="80" cy="80" r="68" fill="none" stroke="#f8a4c0" stroke-width="7"
+          stroke-dasharray="427" stroke-dashoffset="0" stroke-linecap="round"
+          style="transition:stroke-dashoffset .9s linear,stroke .3s;"/>
+      </g>
+      <text id="restDisp" x="80" y="80" text-anchor="middle" dominant-baseline="central"
+        font-size="38" font-weight="300" letter-spacing="1" fill="#fff"
+        font-family="-apple-system,BlinkMacSystemFont,sans-serif">2:00</text>
+    </svg>
   </div>
   <button class="finish-set-btn" id="finishSetBtn" onclick="finishCurrentSet()">סיים סט</button>
 </div>
@@ -636,6 +643,7 @@ function renderExercise(){
   const exs=D.exercises[curWid]||[];
   const ex=exs[curExIdx]||'';
   document.getElementById('exCounter').textContent='תרגיל '+(curExIdx+1)+'/'+exs.length;
+  setTimeout(updateNavBtns,0);
   document.getElementById('exName').textContent=ex;
   const bw=getBaseWeight(ex);
   const hint=document.getElementById('poHint');
@@ -696,7 +704,7 @@ function renderSets(){
           <div class="set-divider"></div>
           <div class="set-field"><div class="set-num" style="font-size:18px;">${rirShow}</div><div class="set-unit">RIR</div></div>
         </div>`;
-      if(!isDone)div.onclick=()=>{curSetIdx=si;renderSets();}
+      div.onclick=()=>{curSetIdx=si;renderSets();} // allow editing done sets
     }
     area.appendChild(div);
   });
@@ -773,6 +781,21 @@ function goNextExercise(){
   saveCurrentInputs();
   const exs=D.exercises[curWid]||[];
   if(curExIdx<exs.length-1){curExIdx++;curSetIdx=0;renderExercise();}
+  updateNavBtns();
+}
+
+function goPrevExercise(){
+  saveCurrentInputs();
+  if(curExIdx>0){curExIdx--;curSetIdx=0;renderExercise();}
+  updateNavBtns();
+}
+
+function updateNavBtns(){
+  const exs=D.exercises[curWid]||[];
+  const prev=document.getElementById('exPrevBtn');
+  const next=document.getElementById('exNextBtn');
+  if(prev)prev.style.opacity=curExIdx===0?'0.25':'1';
+  if(next)next.style.opacity=curExIdx>=exs.length-1?'0.25':'1';
 }
 
 function getAudio(){if(!audioCtx){try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}return audioCtx;}
@@ -780,9 +803,15 @@ function beep(freq,dur,vol){const ctx=getAudio();if(!ctx)return;const o=ctx.crea
 
 function startRestTimer(nxt){
   stopRestTimer();restRemain=restTotal=120;
+  // save start time for background recovery
+  localStorage.setItem('restStart', Date.now());
+  localStorage.setItem('restTotal', restTotal);
+  localStorage.setItem('restNext', nxt||'');
   document.getElementById('restNextLbl').textContent=nxt?'תרגיל הבא: '+nxt:'';
   document.getElementById('restOverlay').classList.add('show');
-  document.getElementById('setsArea').classList.add('rest-active-padding');
+  const ri=document.getElementById('restRingInline');if(ri)ri.classList.add('show');
+  const np=document.getElementById('nextExPreview');if(np)np.style.display='none';
+  const fb=document.getElementById('finishSetBtn');if(fb)fb.style.marginBottom='100px';
   updateRestDisp();
   restTimer=setInterval(()=>{restRemain--;updateRestDisp();if(restRemain<=5&&restRemain>0)beep(880,0.1,0.2);if(restRemain===0){beep(1046,0.3,0.3);stopRestTimer();}},1000);
 }
@@ -800,7 +829,7 @@ function updateRestDisp(){
     ring.style.stroke=strokeCol;
   }
 }
-function stopRestTimer(){if(restTimer){clearInterval(restTimer);restTimer=null;}document.getElementById('restOverlay').classList.remove('show');document.getElementById('setsArea').classList.remove('rest-active-padding');}
+function stopRestTimer(){if(restTimer){clearInterval(restTimer);restTimer=null;}document.getElementById('restOverlay').classList.remove('show');const ri=document.getElementById('restRingInline');if(ri)ri.classList.remove('show');const np=document.getElementById('nextExPreview');if(np)np.style.display='';const fb2=document.getElementById('finishSetBtn');if(fb2)fb2.style.marginBottom='';localStorage.removeItem('restStart');localStorage.removeItem('restTotal');}
 function skipRest(){stopRestTimer();}
 
 function finishWorkout(){
@@ -1183,6 +1212,32 @@ function switchWeightSubTab(sub){
   document.getElementById('wtab-log').className='ctab'+(sub==='log'?' on':'');
   if(sub==='chart')renderWeightChart();
 }
+
+
+// Resume timer when app comes back to foreground
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState==='visible'){
+    const startTs=parseInt(localStorage.getItem('restStart')||'0');
+    const total=parseInt(localStorage.getItem('restTotal')||'0');
+    const nxt=localStorage.getItem('restNext')||'';
+    if(startTs&&total){
+      const elapsed=Math.floor((Date.now()-startTs)/1000);
+      const remaining=total-elapsed;
+      if(remaining>0){
+        stopRestTimer();
+        restRemain=remaining;restTotal=total;
+        document.getElementById('restNextLbl').textContent=nxt?'תרגיל הבא: '+nxt:'';
+        document.getElementById('restOverlay').classList.add('show');
+        document.getElementById('setsArea').classList.add('rest-active-padding');
+        updateRestDisp();
+        restTimer=setInterval(()=>{restRemain--;updateRestDisp();if(restRemain<=5&&restRemain>0)beep(880,0.1,0.2);if(restRemain===0){beep(1046,0.3,0.3);stopRestTimer();}},1000);
+      } else {
+        localStorage.removeItem('restStart');
+        localStorage.removeItem('restTotal');
+      }
+    }
+  }
+});
 
 // PWA disabled
 renderHome();
