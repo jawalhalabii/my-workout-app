@@ -619,7 +619,9 @@ function startWorkout(wid){
   tag.textContent=w.type==='upper'?'פלג עליון':'פלג תחתון';
   tag.className='preview-tag '+(w.type==='upper'?'upper':'lower');
   document.getElementById('previewTitle').textContent=w.name;
-  document.getElementById('previewMeta').textContent=exs.length+' תרגילים · 3 סטים כל אחד';
+  const sc2=D.setsCount&&D.setsCount[curWid]||{};
+  const setsInfo=exs.map(ex=>(sc2[ex]||3)).join('/');
+  document.getElementById('previewMeta').textContent=exs.length+' תרגילים · '+setsInfo+' סטים';
   const list=document.getElementById('previewExList');
   list.innerHTML='';
   exs.forEach((ex,i)=>{
@@ -629,7 +631,7 @@ function startWorkout(wid){
     item.innerHTML=`
       <div>
         <div class="preview-ex-name">${ex}</div>
-        <div class="preview-ex-meta">3 סטים × 8-12 חזרות</div>
+        <div class="preview-ex-meta">${sc2[ex]||3} סטים × 8-12 חזרות</div>
       </div>
       ${bw?`<div class="preview-ex-weight">${bw} ק״ג</div>`:'<div class="preview-ex-meta">משקל חדש</div>'}`;
     list.appendChild(item);
