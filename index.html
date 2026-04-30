@@ -546,7 +546,19 @@ const DEF={
   },
   baseWeights:{},logs:{},weight:null
 };
-function ld(){try{const r=localStorage.getItem(SK);return r?JSON.parse(r):JSON.parse(JSON.stringify(DEF));}catch(e){return JSON.parse(JSON.stringify(DEF));}}
+function ld(){
+  try{
+    const r=localStorage.getItem(SK);
+    if(!r)return JSON.parse(JSON.stringify(DEF));
+    const saved=JSON.parse(r);
+    // Always update workouts config, exercises and setsCount from DEF
+    // but keep user data (logs, weight, measurements, baseWeights, weightHistory)
+    saved.workouts=DEF.workouts;
+    saved.exercises=DEF.exercises;
+    saved.setsCount=DEF.setsCount;
+    return saved;
+  }catch(e){return JSON.parse(JSON.stringify(DEF));}
+}
 function sv(d){try{localStorage.setItem(SK,JSON.stringify(d));}catch(e){}}
 let D=ld();
 let curWid=null,curExIdx=0,curSetIdx=0,setData={},workoutStart=null,_activeWid=null;
