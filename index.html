@@ -551,11 +551,8 @@ function ld(){
     const r=localStorage.getItem(SK);
     if(!r)return JSON.parse(JSON.stringify(DEF));
     const saved=JSON.parse(r);
-    // Always update workouts config, exercises and setsCount from DEF
-    // but keep user data (logs, weight, measurements, baseWeights, weightHistory)
-    saved.workouts=DEF.workouts;
-    saved.exercises=DEF.exercises;
-    saved.setsCount=DEF.setsCount;
+    // Only update setsCount from DEF - never touch logs, exercises, weights
+    if(!saved.setsCount)saved.setsCount=DEF.setsCount;
     return saved;
   }catch(e){return JSON.parse(JSON.stringify(DEF));}
 }
