@@ -567,8 +567,15 @@ function poStep(wid){return D.workouts.find(w=>w.id===wid)?.type==='upper'?1:2.5
 function getBaseWeight(ex){return D.baseWeights[ex]||null;}
 function setBaseWeight(ex,w){D.baseWeights[ex]=parseFloat(w);sv(D);}
 function shouldPO(sets){if(!sets||sets.length<3)return false;return sets.every(s=>{const r=parseInt(s.r)||0,rir=parseInt(s.rir);return r>=12&&!isNaN(rir)&&rir>=3;});}
-function weekKey(){const d=new Date(),dy=d.getDay(),m=new Date(d);m.setDate(d.getDate()-(dy===0?6:dy-1));return m.toISOString().slice(0,10);}
-function getPrevWeekKey(){const d=new Date();d.setDate(d.getDate()-7);const dy=d.getDay(),m=new Date(d);m.setDate(d.getDate()-(dy===0?6:dy-1));return m.toISOString().slice(0,10);}
+function weekKey(){const d=new Date(),dy=d.getDay(),m=new Date(d);m.setDate(d.getDate()-dy);return m.toISOString().slice(0,10);}
+
+function isWithin7Days(log){
+  if(!log||!log.weekKey)return false;
+  const logDate=new Date(log.weekKey);
+  const now=new Date();
+  return (now-logDate)<7*24*60*60*1000;
+}
+function getPrevWeekKey(){const d=new Date();d.setDate(d.getDate()-7);const dy=d.getDay(),m=new Date(d);m.setDate(d.getDate()-dy);return m.toISOString().slice(0,10);}
 function lk(wid){return weekKey()+'_'+wid;}
 
 function showScreen(name){
@@ -584,9 +591,12 @@ function renderHome(){
   const c=document.getElementById('homePills');c.innerHTML='';
   let done=0;
   D.workouts.forEach((w,i)=>{
-    // check current week first, then any completion ever
+    // check current week OR last 7 days
     const thisWeekLog=D.logs[lk(w.id)];
-    const fin=thisWeekLog&&thisWeekLog.finished;
+    // also check previous week key
+    const prevWk=getPrevWeekKey();
+    const prevLog=D.logs[prevWk+'_'+w.id];
+    const fin=(thisWeekLog&&thisWeekLog.finished)||(prevLog&&prevLog.finished&&isWithin7Days(prevLog));
     if(fin)done++;
     const isActive=w.id===_activeWid&&workoutStart;
     const p=document.createElement('div');
